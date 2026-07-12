@@ -10,9 +10,12 @@ type Server struct {
 	httpServer *http.Server
 }
 
-func New(addr, version string) *Server {
+func New(addr, version string, rootHandlers ...http.Handler) *Server {
 	mux := http.NewServeMux()
 	mux.Handle("GET /_emulith/health", HealthHandler(version))
+	if len(rootHandlers) > 0 && rootHandlers[0] != nil {
+		mux.Handle("/", rootHandlers[0])
+	}
 	return &Server{httpServer: &http.Server{
 		Addr:              addr,
 		Handler:           mux,

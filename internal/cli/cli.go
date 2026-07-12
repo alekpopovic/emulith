@@ -14,6 +14,7 @@ import (
 	"github.com/emulith/emulith/internal/config"
 	"github.com/emulith/emulith/internal/server"
 	"github.com/emulith/emulith/internal/state"
+	awsprovider "github.com/emulith/emulith/providers/aws"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +46,8 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 			return fmt.Errorf("open state: %w", err)
 		}
 		defer store.Close()
-		srv := server.New(cfg.Addr, version)
+		gateway := awsprovider.NewGateway(store, logger)
+		srv := server.New(cfg.Addr, version, gateway)
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 		go func() {
