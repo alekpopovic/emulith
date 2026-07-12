@@ -22,7 +22,8 @@ Configuration can be supplied with `--addr`/`EMULITH_ADDR` and `--data-dir`/`EMU
 | STS `GetCallerIdentity` | Supported |
 | All other STS operations | Unsupported |
 | IAM enforcement | Not implemented |
-| AWS S3 | Not implemented yet |
+| S3 subset: CreateBucket, ListBuckets, Put/Get/Head/DeleteObject, ListObjectsV2 | Supported (path-style only) |
+| S3 multipart, ACLs, policies, versioning, ranges, encryption, website hosting | Unsupported |
 | AWS SQS | Not implemented yet |
 
 Emulith does not claim full AWS parity.

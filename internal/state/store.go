@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/sha256"
 	"database/sql"
 	_ "embed"
@@ -102,8 +103,8 @@ func within(root, path string) bool {
 }
 
 type PendingBody struct {
-	TempPath, FinalPath, Hash string
-	Size                      int64
+	TempPath, FinalPath, Hash, MD5 string
+	Size                           int64
 }
 
 func (s *Store) StreamObjectBody(provider, service, namespace, key string, body io.Reader) (*PendingBody, error) {
@@ -118,7 +119,8 @@ func (s *Store) StreamObjectBody(provider, service, namespace, key string, body 
 		return nil, fmt.Errorf("create temporary body: %w", err)
 	}
 	hash := sha256.New()
-	size, copyErr := io.Copy(io.MultiWriter(temp, hash), body)
+	md5Hash := md5.New()
+	size, copyErr := io.Copy(io.MultiWriter(temp, hash, md5Hash), body)
 	syncErr := temp.Sync()
 	closeErr := temp.Close()
 	if copyErr != nil || syncErr != nil || closeErr != nil {
@@ -133,7 +135,7 @@ func (s *Store) StreamObjectBody(provider, service, namespace, key string, body 
 		_ = os.Remove(temp.Name())
 		return nil, fmt.Errorf("publish object body: %w", err)
 	}
-	return &PendingBody{TempPath: temp.Name(), FinalPath: finalPath, Hash: hex.EncodeToString(hash.Sum(nil)), Size: size}, nil
+	return &PendingBody{TempPath: temp.Name(), FinalPath: finalPath, Hash: hex.EncodeToString(hash.Sum(nil)), MD5: hex.EncodeToString(md5Hash.Sum(nil)), Size: size}, nil
 }
 
 func (s *Store) RemoveBody(path string) error {
