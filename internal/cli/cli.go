@@ -13,6 +13,7 @@ import (
 
 	"github.com/emulith/emulith/internal/config"
 	"github.com/emulith/emulith/internal/server"
+	"github.com/emulith/emulith/internal/state"
 	"github.com/spf13/cobra"
 )
 
@@ -39,6 +40,11 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 	cfg := config.FromEnvironment()
 	cmd := &cobra.Command{Use: "serve", Args: cobra.NoArgs, RunE: func(*cobra.Command, []string) error {
 		logger := slog.New(slog.NewJSONHandler(errOut, nil))
+		store, err := state.Open(context.Background(), cfg.DataDir)
+		if err != nil {
+			return fmt.Errorf("open state: %w", err)
+		}
+		defer store.Close()
 		srv := server.New(cfg.Addr, version)
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
@@ -51,7 +57,7 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 			}
 		}()
 		logger.Info("server starting", "addr", cfg.Addr, "data_dir", cfg.DataDir)
-		err := srv.ListenAndServe()
+		err = srv.ListenAndServe()
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
