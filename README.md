@@ -19,7 +19,9 @@ Configuration can be supplied with `--addr`/`EMULITH_ADDR` and `--data-dir`/`EMU
 | Service | Status |
 | --- | --- |
 | Admin health | Implemented |
-| AWS STS | Not implemented yet |
+| STS `GetCallerIdentity` | Supported |
+| All other STS operations | Unsupported |
+| IAM enforcement | Not implemented |
 | AWS S3 | Not implemented yet |
 | AWS SQS | Not implemented yet |
 

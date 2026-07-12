@@ -52,6 +52,10 @@ func NewGateway(store *state.Store, logger *slog.Logger) *Gateway {
 	return &Gateway{store: store, logger: logger, sts: p, s3: p, sqs: p}
 }
 
+func (g *Gateway) SetSTS(handler Handler) { g.sts = handler }
+func (g *Gateway) SetS3(handler Handler)  { g.s3 = handler }
+func (g *Gateway) SetSQS(handler Handler) { g.sqs = handler }
+
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	started := time.Now()
 	id := requestID()
