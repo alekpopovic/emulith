@@ -37,6 +37,24 @@ func NewWithState(addr, version string, store *state.Store, logger *slog.Logger,
 		w.Header().Set("Allow", http.MethodPost)
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	})
+	s.httpServer.Handler.(*http.ServeMux).HandleFunc("GET /_emulith/state/export", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/gzip")
+		w.Header().Set("Content-Disposition", `attachment; filename="emulith-state.tar.gz"`)
+		if err := store.Export(r.Context(), w, version, time.Now()); err != nil {
+			logger.Error("state export failed", "error", err)
+		}
+	})
+	s.httpServer.Handler.(*http.ServeMux).HandleFunc("POST /_emulith/state/import", func(w http.ResponseWriter, r *http.Request) {
+		if err := store.Import(r.Context(), http.MaxBytesReader(w, r.Body, 4<<30), r.URL.Query().Get("replace") == "true"); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			logger.Warn("state import rejected", "error", err)
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "error", "message": "snapshot import rejected"})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"status": "ok", "imported": true})
+	})
 	return s
 }
 

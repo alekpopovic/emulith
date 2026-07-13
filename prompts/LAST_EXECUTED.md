@@ -18,3 +18,4 @@
 | `13-hardening-before-poc.md` | 2026-07-13 | commit containing this entry | Hardened S3 overwrite atomicity, panic recovery, SQS attribute conflicts, and bounded fuzz coverage. |
 | `14-poc-demo-script.md` | 2026-07-13 | commit containing this entry | Added and passed the deterministic loopback-only AWS SDK POC demo and reset verification. |
 | `15-release-automation-and-artifacts.md` | 2026-07-13 | commit containing this entry | Added six-platform snapshot archives, checksums, SPDX SBOM, OCI metadata, and read-only release validation. |
+| `16-state-versioning-export-import.md` | 2026-07-13 | commit containing this entry | Added versioned, checksummed online state export/import with archive safety limits and CLI commands. |

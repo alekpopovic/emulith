@@ -61,3 +61,15 @@ emulith apply -f examples/manifests/aws-basic/emulith.yaml
 ```
 
 Schema version 1 accepts only S3 buckets and standard SQS queues and may change before a stable release.
+
+## State snapshots
+
+The experimental local-only snapshot API supports consistent export and validated restore:
+
+```bash
+emulith export -o emulith-state.tar.gz
+emulith import emulith-state.tar.gz
+emulith import --replace emulith-state.tar.gz
+```
+
+See [the state format](docs/state-format.md). These unauthenticated admin operations must remain on trusted local networks.

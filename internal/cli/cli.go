@@ -34,8 +34,97 @@ func NewCommandWithClient(out, errOut io.Writer, version, commit, built string, 
 	root := &cobra.Command{Use: "emulith", SilenceUsage: true, SilenceErrors: true}
 	root.SetOut(out)
 	root.SetErr(errOut)
-	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newResetCommand(out, client), newApplyCommand(out, client))
+	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newResetCommand(out, client), newApplyCommand(out, client), newExportCommand(out, client), newImportCommand(out, client))
 	return root
+}
+
+func endpointValue() string {
+	if value := os.Getenv("EMULITH_ENDPOINT"); value != "" {
+		return value
+	}
+	return "http://localhost:4566"
+}
+func newExportCommand(out io.Writer, client *http.Client) *cobra.Command {
+	endpoint := endpointValue()
+	var output string
+	var force bool
+	cmd := &cobra.Command{Use: "export", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
+		if output == "" {
+			return errors.New("--output is required")
+		}
+		if _, err := os.Stat(output); err == nil && !force {
+			return errors.New("output exists; use --force")
+		}
+		u, err := url.Parse(endpoint)
+		if err != nil {
+			return err
+		}
+		u.Path = strings.TrimRight(u.Path, "/") + "/_emulith/state/export"
+		req, _ := http.NewRequestWithContext(cmd.Context(), http.MethodGet, u.String(), nil)
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("export HTTP %d", resp.StatusCode)
+		}
+		tmp := output + ".partial"
+		f, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
+		if err != nil {
+			return err
+		}
+		_, copyErr := io.Copy(f, resp.Body)
+		closeErr := f.Close()
+		if err = errors.Join(copyErr, closeErr); err != nil {
+			_ = os.Remove(tmp)
+			return err
+		}
+		if err = os.Rename(tmp, output); err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(out, "State exported to", output)
+		return err
+	}}
+	cmd.Flags().StringVarP(&output, "output", "o", "", "snapshot output")
+	cmd.Flags().BoolVar(&force, "force", false, "overwrite output")
+	cmd.Flags().StringVar(&endpoint, "endpoint", endpoint, "Emulith endpoint")
+	return cmd
+}
+func newImportCommand(out io.Writer, client *http.Client) *cobra.Command {
+	endpoint := endpointValue()
+	var replace bool
+	cmd := &cobra.Command{Use: "import <snapshot>", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		f, err := os.Open(args[0])
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		u, err := url.Parse(endpoint)
+		if err != nil {
+			return err
+		}
+		u.Path = strings.TrimRight(u.Path, "/") + "/_emulith/state/import"
+		if replace {
+			u.RawQuery = "replace=true"
+		}
+		req, _ := http.NewRequestWithContext(cmd.Context(), http.MethodPost, u.String(), f)
+		req.Header.Set("Content-Type", "application/gzip")
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			data, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+			return fmt.Errorf("import HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(data)))
+		}
+		_, err = fmt.Fprintln(out, "State imported successfully.")
+		return err
+	}}
+	cmd.Flags().BoolVar(&replace, "replace", false, "replace non-empty state")
+	cmd.Flags().StringVar(&endpoint, "endpoint", endpoint, "Emulith endpoint")
+	return cmd
 }
 
 func newApplyCommand(out io.Writer, client *http.Client) *cobra.Command {
