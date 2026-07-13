@@ -38,6 +38,11 @@ INSERT OR IGNORE INTO schema_version(version) VALUES (2);
 
 -- emulith migration 3: SNS topics and future subscription metadata
 CREATE TABLE IF NOT EXISTS sns_topics(name TEXT PRIMARY KEY, arn TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL, created_at TIMESTAMP NOT NULL);
-CREATE TABLE IF NOT EXISTS sns_subscriptions(id TEXT PRIMARY KEY, topic_arn TEXT NOT NULL, protocol TEXT NOT NULL, endpoint TEXT NOT NULL, created_at TIMESTAMP NOT NULL, FOREIGN KEY(topic_arn) REFERENCES sns_topics(arn) ON DELETE CASCADE, UNIQUE(topic_arn,protocol,endpoint));
+CREATE TABLE IF NOT EXISTS sns_subscriptions(id TEXT PRIMARY KEY, topic_arn TEXT NOT NULL, protocol TEXT NOT NULL, endpoint TEXT NOT NULL, raw_delivery INTEGER NOT NULL DEFAULT 0, created_at TIMESTAMP NOT NULL, FOREIGN KEY(topic_arn) REFERENCES sns_topics(arn) ON DELETE CASCADE, UNIQUE(topic_arn,protocol,endpoint));
 CREATE INDEX IF NOT EXISTS idx_sns_topics_arn ON sns_topics(arn);
 INSERT OR IGNORE INTO schema_version(version) VALUES (3);
+
+CREATE TABLE IF NOT EXISTS cw_log_groups(name TEXT PRIMARY KEY, created_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS cw_log_streams(group_name TEXT NOT NULL, name TEXT NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY(group_name,name), FOREIGN KEY(group_name) REFERENCES cw_log_groups(name) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS cw_log_events(id INTEGER PRIMARY KEY AUTOINCREMENT, group_name TEXT NOT NULL, stream_name TEXT NOT NULL, timestamp_ms INTEGER NOT NULL, message TEXT NOT NULL, ingested_ms INTEGER NOT NULL, FOREIGN KEY(group_name,stream_name) REFERENCES cw_log_streams(group_name,name) ON DELETE CASCADE);
+CREATE INDEX IF NOT EXISTS idx_cw_log_events ON cw_log_events(group_name,stream_name,timestamp_ms,id);

@@ -29,3 +29,8 @@
 | `24-dynamodb-batch-operations.md` | 2026-07-13 | commit containing this entry | Added bounded multi-table BatchGet and transactionally atomic BatchWrite with duplicate validation and SDK coverage. |
 | `25-dynamodb-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Formalized the loopback-only DynamoDB harness with restart, reset, persistence, concurrent conditions, and pinned SDK reporting. |
 | `26-sns-core-topics-and-publish.md` | 2026-07-13 | commit containing this entry | Added SNS Query protocol routing, durable topic lifecycle, pagination, attributes, and plain-message Publish with SDK coverage. |
+| `27-sns-sqs-subscriptions.md` | 2026-07-13 | commit containing this entry | Added local SNS subscription CRUD, raw/enveloped SQS delivery, and subscription cleanup state. |
+| `28-cloudwatch-logs-subset.md` | 2026-07-13 | commit containing this entry | Added bounded CloudWatch Logs JSON routing, durable groups/streams/events, and basic ingestion/read operations. |
+| `29-v0.2-hardening-and-release.md` | 2026-07-13 | commit containing this entry | Added v0.2 upgrade/migration documentation and ran release acceptance hardening gates. |
+| `30-azure-provider-gateway-and-endpoints.md` | 2026-07-13 | commit containing this entry | Added experimental Azure provider error/request foundation and local connection endpoint support. |
+| `31-azure-storage-account-and-auth-contract.md` | 2026-07-13 | commit containing this entry | Added deterministic development account contract and `azure connection-string` CLI output. |
