@@ -68,6 +68,10 @@ func (h *Handler) ServeAWS(w http.ResponseWriter, req *awsprovider.Request, id s
 		h.query(w, req)
 	case "Scan":
 		h.scan(w, req)
+	case "BatchGetItem":
+		h.batchGet(w, req)
+	case "BatchWriteItem":
+		h.batchWrite(w, req)
 	default:
 		h.err(w, 400, "UnknownOperationException", "Operation "+req.Operation+" is not implemented")
 	}

@@ -26,3 +26,4 @@
 | `21-dynamodb-item-crud.md` | 2026-07-13 | commit containing this entry | Implemented atomic DynamoDB item CRUD, precise nested value round trips, and a structured SET/REMOVE update subset. |
 | `22-dynamodb-expressions-and-conditions.md` | 2026-07-13 | commit containing this entry | Added a bounded expression AST, atomic conditional writes, precise arithmetic, nested paths, and extended update actions. |
 | `23-dynamodb-query-scan-pagination.md` | 2026-07-13 | commit containing this entry | Added primary-index Query and deterministic Scan with exact ordering, filters, projections, counts, and key-map pagination. |
+| `24-dynamodb-batch-operations.md` | 2026-07-13 | commit containing this entry | Added bounded multi-table BatchGet and transactionally atomic BatchWrite with duplicate validation and SDK coverage. |

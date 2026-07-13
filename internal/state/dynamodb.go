@@ -14,6 +14,11 @@ type DynamoTable struct {
 	CreatedAt                                                                               time.Time
 }
 type DynamoItem struct{ PrimaryKey, PartitionKey, SortKey, Payload []byte }
+type DynamoWrite struct {
+	Table                            string
+	Key, Partition, SortKey, Payload []byte
+	Delete                           bool
+}
 
 var ErrDynamoExists = errors.New("DynamoDB table exists")
 var ErrDynamoNotFound = errors.New("DynamoDB table not found")
@@ -212,4 +217,35 @@ func (s *Store) ListAllDynamoItems(ctx context.Context, table string, maximum in
 		return nil, errors.New("DynamoDB local evaluation limit exceeded")
 	}
 	return out, nil
+}
+func (s *Store) BatchWriteDynamoItems(ctx context.Context, ops []DynamoWrite) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	tx, e := s.db.BeginTx(ctx, nil)
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	checked := map[string]bool{}
+	for _, op := range ops {
+		if !checked[op.Table] {
+			var one int
+			if e = tx.QueryRowContext(ctx, `SELECT 1 FROM dynamodb_tables WHERE name=?`, op.Table).Scan(&one); errors.Is(e, sql.ErrNoRows) {
+				return ErrDynamoNotFound
+			} else if e != nil {
+				return e
+			}
+			checked[op.Table] = true
+		}
+		if op.Delete {
+			if _, e = tx.ExecContext(ctx, `DELETE FROM dynamodb_items WHERE table_name=? AND primary_key=?`, op.Table, op.Key); e != nil {
+				return e
+			}
+		} else {
+			if _, e = tx.ExecContext(ctx, `INSERT INTO dynamodb_items(table_name,primary_key,partition_key,sort_key,payload,item_size,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(table_name,primary_key) DO UPDATE SET payload=excluded.payload,item_size=excluded.item_size,updated_at=excluded.updated_at`, op.Table, op.Key, op.Partition, nullBytes(op.SortKey), op.Payload, len(op.Payload), time.Now().UTC()); e != nil {
+				return e
+			}
+		}
+	}
+	return tx.Commit()
 }

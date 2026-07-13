@@ -4,6 +4,8 @@ Generated from `compatibility/aws.yaml`. Statuses: supported (default SDK test p
 
 | Service | Operation | Status | Protocol | Test ID | Notes | Known deviations | Since |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| dynamodb | BatchGetItem | partial | AWS-JSON-1.0 | aws.dynamodb.BatchGetItem.multi-table | Validated multi-table reads with projection and exact key validation. | No throttling; successful requests return empty UnprocessedKeys. | v0.2.0-dev |
+| dynamodb | BatchWriteItem | partial | AWS-JSON-1.0 | aws.dynamodb.BatchWriteItem.multi-table | Up to 25 validated multi-table put/delete actions. | Local writes are all-or-nothing in one transaction; no throttling. | v0.2.0-dev |
 | dynamodb | CreateTable | supported | AWS-JSON-1.0 | aws.dynamodb.table-lifecycle.basic | PAY_PER_REQUEST tables with scalar HASH and optional RANGE keys. | Tables become ACTIVE immediately; secondary indexes and advanced options are rejected. | v0.2.0-dev |
 | dynamodb | DeleteItem | partial | AWS-JSON-1.0 |  | Atomic idempotent deletion with NONE and ALL_OLD. | Conditions are not yet supported. | v0.2.0-dev |
 | dynamodb | DeleteTable | partial | AWS-JSON-1.0 |  | Immediate atomic local deletion. | No asynchronous deletion period. | v0.2.0-dev |
