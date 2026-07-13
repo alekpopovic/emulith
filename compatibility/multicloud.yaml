@@ -1,0 +1,18 @@
+# Experimental multicloud catalog. Supported status is reserved for passing official SDK tests.
+entries:
+  - provider: Azure
+    service: Table
+    operation: QueryEntities
+    status: partial
+    protocol: OData/JSON
+    notes: Bounded key equality filtering only
+    known_deviations: [No full OData grammar, no SDK suite]
+    since: v0.3
+  - provider: GCP
+    service: Storage
+    operation: BucketsInsert
+    status: experimental
+    protocol: JSON HTTP
+    notes: Local bucket lifecycle subset
+    known_deviations: [No IAM, no object API compatibility suite]
+    since: v0.4

@@ -22,6 +22,6 @@ COPY --from=builder /out/emulith /usr/local/bin/emulith
 COPY LICENSE NOTICE /licenses/
 USER 10001:10001
 VOLUME ["/var/lib/emulith"]
-EXPOSE 4566
+EXPOSE 4566 10000 10001 10002 8085 8080 9023
 ENTRYPOINT ["/usr/local/bin/emulith"]
 CMD ["serve", "--addr", ":4566", "--data-dir", "/var/lib/emulith"]

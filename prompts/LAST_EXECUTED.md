@@ -43,11 +43,11 @@
 | `38-azure-table-service-and-entity-crud.md` | 2026-07-13 | commit containing this entry | Added durable Azure Table lifecycle and basic typed JSON entity CRUD with ETags. |
 | `39-azure-table-odata-query-and-pagination.md` | 2026-07-13 | commit containing this entry | Added table routing groundwork; full bounded OData query grammar remains partial. |
 | `40-azure-table-batch-transactions.md` | 2026-07-13 | commit containing this entry | Added bounded multipart batch parsing with single-table/single-partition validation and safe rejection semantics; atomic operation execution remains partial. |
-| `41-azure-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Existing hermetic suite remains green; Azure SDK scenarios are documented as pending. |
-| `42-azure-manifest-compose-and-dev-ux.md` | 2026-07-13 | commit containing this entry | Extended strict manifests with Azure resource validation and added `azure env` output. |
-| `43-azure-state-migration-export-import-and-matrix.md` | 2026-07-13 | commit containing this entry | Extended schema/snapshot compatibility for Azure tables and documented migration scope. |
-| `44-v0.3-hardening-and-release.md` | 2026-07-13 | commit containing this entry | Ran hardening baseline; AWS suite remains green, Azure/GCP advanced operations remain partial. |
-| `45-gcp-provider-grpc-and-endpoints.md` | 2026-07-13 | commit containing this entry | Added GCP endpoint configuration foundation without claiming operation support. |
+| `41-azure-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Added multicloud compatibility catalog scaffold; Azure SDK scenarios remain pending. |
+| `42-azure-manifest-compose-and-dev-ux.md` | 2026-07-13 | commit containing this entry | Extended strict manifests with Azure validation, env output, and documented container ports. |
+| `43-azure-state-migration-export-import-and-matrix.md` | 2026-07-13 | commit containing this entry | Extended schema/snapshot compatibility and added v0.2-to-v0.3 migration guidance. |
+| `44-v0.3-hardening-and-release.md` | 2026-07-13 | commit containing this entry | Hardened release metadata and documented remaining Azure/GCP deviations. |
+| `45-gcp-provider-grpc-and-endpoints.md` | 2026-07-13 | commit containing this entry | Added GCP endpoint configuration and exposed all planned service ports in the image. |
 | `46-gcp-project-credentials-and-emulator-env.md` | 2026-07-13 | commit containing this entry | Added local GCP project configuration, resource helpers, and deterministic `gcp env`. |
 | `47-pubsub-topic-and-subscription-lifecycle.md` | 2026-07-13 | commit containing this entry | Pub/Sub lifecycle remains unsupported pending gRPC service definitions. |
 | `48-pubsub-publish-pull-and-ack.md` | 2026-07-13 | commit containing this entry | Pub/Sub messaging remains pending generated gRPC service integration. |
