@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/emulith/emulith/internal/state"
+	"github.com/alekpopovic/emulith/internal/state"
 )
 
 type Server struct {

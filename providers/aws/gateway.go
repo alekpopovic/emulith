@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emulith/emulith/internal/state"
+	"github.com/alekpopovic/emulith/internal/state"
 )
 
 const maxProtocolBody = 1 << 20

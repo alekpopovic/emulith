@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"net/http"
 
-	awsprovider "github.com/emulith/emulith/providers/aws"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 )
 
 const namespace = "https://sts.amazonaws.com/doc/2011-06-15/"

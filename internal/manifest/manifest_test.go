@@ -5,9 +5,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/alekpopovic/emulith/test/compatibility/aws/harness"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/emulith/emulith/test/compatibility/aws/harness"
 )
 
 func TestParse(t *testing.T) {

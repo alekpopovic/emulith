@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/emulith/emulith/internal/cli"
+	"github.com/alekpopovic/emulith/internal/cli"
 )
 
 var (

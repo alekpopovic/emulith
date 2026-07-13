@@ -12,17 +12,17 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/alekpopovic/emulith/internal/server"
+	"github.com/alekpopovic/emulith/internal/state"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/providers/aws/s3"
+	"github.com/alekpopovic/emulith/providers/aws/sqs"
+	"github.com/alekpopovic/emulith/providers/aws/sts"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	awssqs "github.com/aws/aws-sdk-go-v2/service/sqs"
 	awssdksts "github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/emulith/emulith/internal/server"
-	"github.com/emulith/emulith/internal/state"
-	awsprovider "github.com/emulith/emulith/providers/aws"
-	"github.com/emulith/emulith/providers/aws/s3"
-	"github.com/emulith/emulith/providers/aws/sqs"
-	"github.com/emulith/emulith/providers/aws/sts"
 )
 
 type Harness struct {

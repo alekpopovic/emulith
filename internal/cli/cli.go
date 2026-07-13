@@ -15,14 +15,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/emulith/emulith/internal/config"
-	"github.com/emulith/emulith/internal/manifest"
-	"github.com/emulith/emulith/internal/server"
-	"github.com/emulith/emulith/internal/state"
-	awsprovider "github.com/emulith/emulith/providers/aws"
-	"github.com/emulith/emulith/providers/aws/s3"
-	"github.com/emulith/emulith/providers/aws/sqs"
-	"github.com/emulith/emulith/providers/aws/sts"
+	"github.com/alekpopovic/emulith/internal/config"
+	"github.com/alekpopovic/emulith/internal/manifest"
+	"github.com/alekpopovic/emulith/internal/server"
+	"github.com/alekpopovic/emulith/internal/state"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/providers/aws/s3"
+	"github.com/alekpopovic/emulith/providers/aws/sqs"
+	"github.com/alekpopovic/emulith/providers/aws/sts"
 	"github.com/spf13/cobra"
 )
 

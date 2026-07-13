@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emulith/emulith/internal/state"
-	awsprovider "github.com/emulith/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/internal/state"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 )
 
 func setup(t *testing.T) *Handler {

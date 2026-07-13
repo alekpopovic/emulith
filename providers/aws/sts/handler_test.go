@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	awsprovider "github.com/emulith/emulith/providers/aws"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 )
 
 func TestGetCallerIdentity(t *testing.T) {

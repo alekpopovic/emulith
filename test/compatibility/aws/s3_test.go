@@ -8,13 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/alekpopovic/emulith/internal/server"
+	"github.com/alekpopovic/emulith/internal/state"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/providers/aws/s3"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/emulith/emulith/internal/server"
-	"github.com/emulith/emulith/internal/state"
-	awsprovider "github.com/emulith/emulith/providers/aws"
-	"github.com/emulith/emulith/providers/aws/s3"
 )
 
 func TestS3SDKLifecycle(t *testing.T) {

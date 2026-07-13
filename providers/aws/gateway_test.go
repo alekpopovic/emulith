@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/emulith/emulith/internal/server"
-	"github.com/emulith/emulith/internal/state"
+	"github.com/alekpopovic/emulith/internal/server"
+	"github.com/alekpopovic/emulith/internal/state"
 )
 
 func testGateway(t *testing.T) (*Gateway, *bytes.Buffer) {

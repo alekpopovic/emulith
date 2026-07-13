@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"github.com/emulith/emulith/internal/state"
+	"github.com/alekpopovic/emulith/internal/state"
 	"io"
 	"log/slog"
 	"net/http"

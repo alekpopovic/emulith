@@ -13,8 +13,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/emulith/emulith/internal/state"
-	awsprovider "github.com/emulith/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/internal/state"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 )
 
 const accountID = "000000000000"

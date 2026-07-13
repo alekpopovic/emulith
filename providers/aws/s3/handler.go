@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emulith/emulith/internal/state"
-	awsprovider "github.com/emulith/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/internal/state"
+	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 )
 
 const namespace = "http://s3.amazonaws.com/doc/2006-03-01/"
