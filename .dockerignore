@@ -1,0 +1,7 @@
+.git
+.github
+data
+emulith
+*.db
+*.db-shm
+*.db-wal

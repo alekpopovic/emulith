@@ -1,4 +1,7 @@
-.PHONY: build test run clean
+.PHONY: build test run clean docker-build docker-run
+
+IMAGE ?= emulith/emulith
+TAG ?= dev
 
 VERSION ?= dev
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
@@ -16,3 +19,9 @@ run:
 
 clean:
 	rm -f emulith
+
+docker-build:
+	docker build --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) --build-arg BUILT=$(BUILT) -t $(IMAGE):$(TAG) .
+
+docker-run: docker-build
+	docker run --rm -p 4566:4566 -v emulith-data:/var/lib/emulith $(IMAGE):$(TAG)

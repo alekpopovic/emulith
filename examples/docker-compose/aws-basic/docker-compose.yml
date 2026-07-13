@@ -1,0 +1,13 @@
+services:
+  emulith:
+    build:
+      context: ../../..
+    image: emulith/emulith:dev
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    volumes:
+      - emulith-data:/var/lib/emulith
+
+volumes:
+  emulith-data:
