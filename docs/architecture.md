@@ -20,3 +20,5 @@ SQLite stores metadata with foreign keys, WAL, busy timeout, and transactions; S
 The SDK harness starts a temporary full server and rejects non-loopback traffic. Emulith is unauthenticated and must stay on trusted development networks.
 
 The registry is a small internal composition mechanism, not a dynamic plugin API: there is no reflection, shared-object loading, RPC, or global locator. Future Azure/GCP providers should have separate gateways and protocol models behind explicit routing rather than a fictional universal cloud API.
+
+Azure local endpoint and connection-string foundations are experimental; Blob, Queue, and Table operations are not yet implemented.

@@ -7,7 +7,7 @@
     "github.com/aws/aws-sdk-go-v2": "v1.30.5",
     "github.com/aws/aws-sdk-go-v2/service/dynamodb": "v1.34.5"
   },
-  "generated_at": "2026-07-13T01:21:14Z",
+  "generated_at": "2026-07-13T01:28:03Z",
   "catalog_entries": [
     {
       "provider": "aws",
@@ -162,6 +162,35 @@
       "notes": "Bounded AST-based SET REMOVE ADD DELETE updates and atomic one-winner conditions.",
       "known_deviations": [
         "Expression subset is documented; ReturnValuesOnConditionCheckFailure is rejected."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "logs",
+      "operation": "CreateLogGroup",
+      "status": "experimental",
+      "protocol": "AWS-JSON-1.1",
+      "test_id": "",
+      "notes": "Local CloudWatch Logs group/stream subset.",
+      "known_deviations": [
+        "No IAM",
+        "throttling",
+        "retention",
+        "or full pagination semantics."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "logs",
+      "operation": "PutLogEvents",
+      "status": "experimental",
+      "protocol": "AWS-JSON-1.1",
+      "test_id": "",
+      "notes": "Basic durable event ingestion.",
+      "known_deviations": [
+        "Sequence tokens and FilterLogEvents are limited."
       ],
       "since": "v0.2.0-dev"
     },
@@ -372,6 +401,45 @@
         "No IAM evaluation."
       ],
       "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "azure",
+      "service": "blob",
+      "operation": "*",
+      "status": "unsupported",
+      "protocol": "REST",
+      "test_id": "",
+      "notes": "Azure endpoint foundation only.",
+      "known_deviations": [
+        "Blob operations are not implemented."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "azure",
+      "service": "queue",
+      "operation": "*",
+      "status": "unsupported",
+      "protocol": "REST",
+      "test_id": "",
+      "notes": "Azure endpoint foundation only.",
+      "known_deviations": [
+        "Queue operations are not implemented."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "azure",
+      "service": "table",
+      "operation": "*",
+      "status": "unsupported",
+      "protocol": "REST",
+      "test_id": "",
+      "notes": "Azure endpoint foundation only.",
+      "known_deviations": [
+        "Table operations are not implemented."
+      ],
+      "since": "v0.2.0-dev"
     }
   ],
   "test_results": [
@@ -425,7 +493,9 @@
     }
   ],
   "summary": {
+    "experimental": 2,
     "partial": 22,
-    "supported": 6
+    "supported": 6,
+    "unsupported": 3
   }
 }
