@@ -2,6 +2,8 @@
 
 Emulith is a from-scratch, Docker-first local cloud emulator for development and CI. It requires no cloud account, activation key, license key, telemetry, or phone-home service. It is not intended for production.
 
+Project documentation: [architecture](docs/architecture.md), [AWS compatibility](docs/compatibility/aws.md), [roadmap](docs/roadmap.md), [contributing](CONTRIBUTING.md), [governance](GOVERNANCE.md), and [security](SECURITY.md).
+
 The project is an early AWS-compatible POC. Protocol services are not implemented yet.
 
 ## Build and run

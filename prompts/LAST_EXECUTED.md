@@ -14,3 +14,4 @@
 | `09-aws-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Added a reusable loopback-only full-server SDK harness and compatibility target. |
 | `10-manifest-apply.md` | 2026-07-13 | commit containing this entry | Added strict experimental manifests and idempotent SDK-backed apply CLI. |
 | `11-github-actions-ci.md` | 2026-07-13 | commit containing this entry | Added least-privilege Go quality, compatibility, and Docker health CI jobs. |
+| `12-governance-and-release-docs.md` | 2026-07-13 | commit containing this entry | Added licensing, DCO, governance, security, architecture, compatibility, roadmap, and release documentation. |
