@@ -23,6 +23,7 @@ import (
 	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 	"github.com/alekpopovic/emulith/providers/aws/dynamodb"
 	"github.com/alekpopovic/emulith/providers/aws/s3"
+	"github.com/alekpopovic/emulith/providers/aws/sns"
 	"github.com/alekpopovic/emulith/providers/aws/sqs"
 	"github.com/alekpopovic/emulith/providers/aws/sts"
 	"github.com/spf13/cobra"
@@ -227,6 +228,9 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 			return err
 		}
 		if err := provider.Register("dynamodb", dynamodb.New(store)); err != nil {
+			return err
+		}
+		if err := provider.Register("sns", sns.New(store, cfg.Region)); err != nil {
 			return err
 		}
 		srv := server.NewWithState(cfg.Addr, version, store, logger, provider.Gateway(), registry)

@@ -219,7 +219,7 @@ func (s *Store) Import(ctx context.Context, in io.Reader, replace bool) error {
 	var schema int
 	err = candidate.QueryRowContext(ctx, `SELECT max(version) FROM schema_version`).Scan(&schema)
 	candidate.Close()
-	if err != nil || schema != 2 {
+	if err != nil || (schema != 2 && schema != 3) {
 		return errors.New("import database schema is unsupported")
 	}
 	backup := s.objectsRoot + ".import-backup"
@@ -295,12 +295,12 @@ func restoreDatabase(ctx context.Context, db *sql.DB, path string) error {
 		return e
 	}
 	defer tx.Rollback()
-	for _, table := range []string{"dynamodb_items", "dynamodb_attributes", "dynamodb_tables", "sqs_messages", "sqs_queues", "s3_objects", "s3_buckets"} {
+	for _, table := range []string{"sns_subscriptions", "sns_topics", "dynamodb_items", "dynamodb_attributes", "dynamodb_tables", "sqs_messages", "sqs_queues", "s3_objects", "s3_buckets"} {
 		if _, e = tx.ExecContext(ctx, "DELETE FROM "+table); e != nil {
 			return e
 		}
 	}
-	for _, table := range []string{"s3_buckets", "s3_objects", "sqs_queues", "sqs_messages", "dynamodb_tables", "dynamodb_attributes", "dynamodb_items"} {
+	for _, table := range []string{"s3_buckets", "s3_objects", "sqs_queues", "sqs_messages", "dynamodb_tables", "dynamodb_attributes", "dynamodb_items", "sns_topics", "sns_subscriptions"} {
 		if _, e = tx.ExecContext(ctx, "INSERT INTO "+table+" SELECT * FROM imported."+table); e != nil {
 			return e
 		}

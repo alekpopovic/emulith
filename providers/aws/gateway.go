@@ -50,13 +50,14 @@ type Gateway struct {
 
 func NewGateway(store *state.Store, logger *slog.Logger) *Gateway {
 	p := placeholder{}
-	return &Gateway{store: store, logger: logger, handlers: map[string]Handler{"sts": p, "s3": p, "sqs": p, "dynamodb": p}}
+	return &Gateway{store: store, logger: logger, handlers: map[string]Handler{"sts": p, "s3": p, "sqs": p, "dynamodb": p, "sns": p}}
 }
 
 func (g *Gateway) SetSTS(handler Handler)      { g.handlers["sts"] = handler }
 func (g *Gateway) SetS3(handler Handler)       { g.handlers["s3"] = handler }
 func (g *Gateway) SetSQS(handler Handler)      { g.handlers["sqs"] = handler }
 func (g *Gateway) SetDynamoDB(handler Handler) { g.handlers["dynamodb"] = handler }
+func (g *Gateway) SetSNS(handler Handler)      { g.handlers["sns"] = handler }
 func (g *Gateway) RegisterHandler(name string, handler Handler) error {
 	if name == "" || handler == nil {
 		return fmt.Errorf("invalid AWS service registration")
@@ -157,6 +158,8 @@ func classify(r *http.Request) (*Request, error) {
 		req.Protocol, req.Operation, req.Form = ProtocolQuery, action, form
 		if isSTS(action) {
 			req.Service = "sts"
+		} else if isSNS(action) {
+			req.Service = "sns"
 		} else {
 			req.Service = "sqs"
 		}
@@ -167,6 +170,13 @@ func classify(r *http.Request) (*Request, error) {
 		return req, nil
 	}
 	return req, nil
+}
+func isSNS(action string) bool {
+	switch action {
+	case "CreateTopic", "ListTopics", "GetTopicAttributes", "DeleteTopic", "Publish", "Subscribe", "Unsubscribe", "ListSubscriptions":
+		return true
+	}
+	return false
 }
 
 func merge(a, b url.Values) url.Values {

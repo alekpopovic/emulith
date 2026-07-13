@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "emulith_version": "dev",
+  "commit": "unknown",
+  "go_version": "go1.22.5",
+  "sdk_modules": {
+    "github.com/aws/aws-sdk-go-v2": "v1.30.5",
+    "github.com/aws/aws-sdk-go-v2/service/dynamodb": "v1.34.5"
+  },
+  "generated_at": "2026-07-13T01:21:14Z",
+  "catalog_entries": [
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "BatchGetItem",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.BatchGetItem.multi-table",
+      "notes": "Validated multi-table reads with projection and exact key validation.",
+      "known_deviations": [
+        "No throttling; successful requests return empty UnprocessedKeys."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "BatchWriteItem",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.BatchWriteItem.multi-table",
+      "notes": "Up to 25 validated multi-table put/delete actions.",
+      "known_deviations": [
+        "Local writes are all-or-nothing in one transaction; no throttling."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "CreateTable",
+      "status": "supported",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.table-lifecycle.basic",
+      "notes": "PAY_PER_REQUEST tables with scalar HASH and optional RANGE keys.",
+      "known_deviations": [
+        "Tables become ACTIVE immediately; secondary indexes and advanced options are rejected."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "DeleteItem",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "",
+      "notes": "Atomic idempotent deletion with NONE and ALL_OLD.",
+      "known_deviations": [
+        "Conditions are not yet supported."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "DeleteTable",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "",
+      "notes": "Immediate atomic local deletion.",
+      "known_deviations": [
+        "No asynchronous deletion period."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "DescribeTable",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.persistence.restart",
+      "notes": "Returns persisted local table metadata and survives clean local restart.",
+      "known_deviations": [
+        "Capacity and index metrics are omitted."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "GetItem",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "",
+      "notes": "Strongly consistent full-item reads.",
+      "known_deviations": [
+        "Projection is not yet supported."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "ListTables",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "",
+      "notes": "Lexical pagination with Limit and ExclusiveStartTableName.",
+      "known_deviations": [
+        "Local tables only."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "PutItem",
+      "status": "supported",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.item-crud.basic",
+      "notes": "Atomic validated item replacement with NONE and ALL_OLD.",
+      "known_deviations": [
+        "Conditions and legacy parameters are rejected."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "Query",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.Query.primary-index",
+      "notes": "Primary-index key conditions filtering projection ordering and key-map pagination.",
+      "known_deviations": [
+        "Secondary indexes are unsupported; pagination is not snapshot isolated."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "Scan",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.Scan.pagination",
+      "notes": "Deterministic primary-key scan with pre-filter Limit semantics and projection.",
+      "known_deviations": [
+        "Parallel scan and secondary indexes are unsupported."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "dynamodb",
+      "operation": "UpdateItem",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.dynamodb.UpdateItem.concurrent-condition",
+      "notes": "Bounded AST-based SET REMOVE ADD DELETE updates and atomic one-winner conditions.",
+      "known_deviations": [
+        "Expression subset is documented; ReturnValuesOnConditionCheckFailure is rejected."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "CreateBucket",
+      "status": "supported",
+      "protocol": "REST-XML",
+      "test_id": "aws.s3.lifecycle.basic",
+      "notes": "Path-style local bucket lifecycle.",
+      "known_deviations": [
+        "No virtual-host addressing."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "DeleteObject",
+      "status": "partial",
+      "protocol": "REST-XML",
+      "test_id": "",
+      "notes": "Idempotent local deletion.",
+      "known_deviations": [
+        "No version markers."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "GetObject",
+      "status": "partial",
+      "protocol": "REST-XML",
+      "test_id": "",
+      "notes": "Basic full-body reads.",
+      "known_deviations": [
+        "No ranges or versioning."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "HeadObject",
+      "status": "partial",
+      "protocol": "REST-XML",
+      "test_id": "",
+      "notes": "Basic object metadata.",
+      "known_deviations": [
+        "Limited metadata."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "ListBuckets",
+      "status": "partial",
+      "protocol": "REST-XML",
+      "test_id": "",
+      "notes": "Basic listing is covered by the S3 lifecycle test.",
+      "known_deviations": [
+        "Owner details are local placeholders."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "ListObjectsV2",
+      "status": "partial",
+      "protocol": "REST-XML",
+      "test_id": "",
+      "notes": "Prefix listing.",
+      "known_deviations": [
+        "Limited pagination semantics."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "operation": "PutObject",
+      "status": "partial",
+      "protocol": "REST-XML",
+      "test_id": "",
+      "notes": "Basic streamed object writes.",
+      "known_deviations": [
+        "No multipart or checksums."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "sns",
+      "operation": "CreateTopic",
+      "status": "supported",
+      "protocol": "Query",
+      "test_id": "aws.sns.topic-publish.lifecycle",
+      "notes": "Standard local topic creation with idempotent names.",
+      "known_deviations": [
+        "FIFO and topic attributes are rejected."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "sns",
+      "operation": "DeleteTopic",
+      "status": "partial",
+      "protocol": "Query",
+      "test_id": "",
+      "notes": "Immediate local deletion.",
+      "known_deviations": [
+        "No subscription delivery state yet."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "sns",
+      "operation": "GetTopicAttributes",
+      "status": "partial",
+      "protocol": "Query",
+      "test_id": "",
+      "notes": "Core topic metadata and zero subscription counts.",
+      "known_deviations": [
+        "Subscriptions are not implemented until Task 27."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "sns",
+      "operation": "ListTopics",
+      "status": "partial",
+      "protocol": "Query",
+      "test_id": "",
+      "notes": "Lexical topic listing with NextToken.",
+      "known_deviations": [
+        "Mutation during pagination is not snapshot-isolated."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "sns",
+      "operation": "Publish",
+      "status": "partial",
+      "protocol": "Query",
+      "test_id": "",
+      "notes": "Plain UTF-8 messages return a local MessageId.",
+      "known_deviations": [
+        "No subscribers or delivery; JSON message structure and attributes rejected."
+      ],
+      "since": "v0.2.0-dev"
+    },
+    {
+      "provider": "aws",
+      "service": "sqs",
+      "operation": "CreateQueue",
+      "status": "supported",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "aws.sqs.lifecycle.basic",
+      "notes": "Standard queue lifecycle and messages.",
+      "known_deviations": [
+        "FIFO unsupported."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "sqs",
+      "operation": "ReceiveMessage",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "",
+      "notes": "Visibility-based receive.",
+      "known_deviations": [
+        "No long polling."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "sqs",
+      "operation": "SendMessage",
+      "status": "partial",
+      "protocol": "AWS-JSON-1.0",
+      "test_id": "",
+      "notes": "Standard message send.",
+      "known_deviations": [
+        "Attributes are limited."
+      ],
+      "since": "v0.1.0-poc"
+    },
+    {
+      "provider": "aws",
+      "service": "sts",
+      "operation": "GetCallerIdentity",
+      "status": "supported",
+      "protocol": "Query",
+      "test_id": "aws.sts.GetCallerIdentity.basic",
+      "notes": "Deterministic local identity.",
+      "known_deviations": [
+        "No IAM evaluation."
+      ],
+      "since": "v0.1.0-poc"
+    }
+  ],
+  "test_results": [
+    {
+      "id": "aws.dynamodb.BatchGetItem.multi-table",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.BatchWriteItem.multi-table",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.Query.primary-index",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.Scan.pagination",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.UpdateItem.concurrent-condition",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.item-crud.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.persistence.restart",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.table-lifecycle.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.s3.lifecycle.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.sns.topic-publish.lifecycle",
+      "status": "pass"
+    },
+    {
+      "id": "aws.sqs.lifecycle.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.sts.GetCallerIdentity.basic",
+      "status": "pass"
+    }
+  ],
+  "summary": {
+    "partial": 22,
+    "supported": 6
+  }
+}

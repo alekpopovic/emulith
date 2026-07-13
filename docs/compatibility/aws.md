@@ -23,6 +23,11 @@ Generated from `compatibility/aws.yaml`. Statuses: supported (default SDK test p
 | s3 | ListBuckets | partial | REST-XML |  | Basic listing is covered by the S3 lifecycle test. | Owner details are local placeholders. | v0.1.0-poc |
 | s3 | ListObjectsV2 | partial | REST-XML |  | Prefix listing. | Limited pagination semantics. | v0.1.0-poc |
 | s3 | PutObject | partial | REST-XML |  | Basic streamed object writes. | No multipart or checksums. | v0.1.0-poc |
+| sns | CreateTopic | supported | Query | aws.sns.topic-publish.lifecycle | Standard local topic creation with idempotent names. | FIFO and topic attributes are rejected. | v0.2.0-dev |
+| sns | DeleteTopic | partial | Query |  | Immediate local deletion. | No subscription delivery state yet. | v0.2.0-dev |
+| sns | GetTopicAttributes | partial | Query |  | Core topic metadata and zero subscription counts. | Subscriptions are not implemented until Task 27. | v0.2.0-dev |
+| sns | ListTopics | partial | Query |  | Lexical topic listing with NextToken. | Mutation during pagination is not snapshot-isolated. | v0.2.0-dev |
+| sns | Publish | partial | Query |  | Plain UTF-8 messages return a local MessageId. | No subscribers or delivery; JSON message structure and attributes rejected. | v0.2.0-dev |
 | sqs | CreateQueue | supported | AWS-JSON-1.0 | aws.sqs.lifecycle.basic | Standard queue lifecycle and messages. | FIFO unsupported. | v0.1.0-poc |
 | sqs | ReceiveMessage | partial | AWS-JSON-1.0 |  | Visibility-based receive. | No long polling. | v0.1.0-poc |
 | sqs | SendMessage | partial | AWS-JSON-1.0 |  | Standard message send. | Attributes are limited. | v0.1.0-poc |

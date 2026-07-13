@@ -1,66 +1,73 @@
-# Emulith — Codex GPT-5.6 prompt paket 15–29
+# Emulith — Codex GPT-5.6 prompt paket 30–44
 
-Ovaj paket nastavlja prvi Emulith paket (`00–14`) i vodi projekat od funkcionalnog `v0.1.0-poc` ka stabilnijem AWS-first `v0.2.0` izdanju.
+Ovaj paket nastavlja prethodne Emulith pakete `00–14` i `15–29`. Njegov cilj je da AWS-first `v0.2.0` projekat proširi u prvi stvarni multi-cloud POC sa Azure Storage podrškom i pripremi `v0.3.0`.
 
-Promptovi su napisani na engleskom zbog preciznijeg izvršavanja tehničkih zahteva u Codex-u. Svaki prompt je zaseban Markdown fajl i treba ga pokretati kao poseban Codex task u istom repozitorijumu.
+Svaki prompt je zaseban Markdown fajl i predviđen je kao poseban Codex task u istom repozitorijumu. Promptovi su napisani na engleskom zbog preciznijeg rada sa protokolima, SDK-ovima, testovima i acceptance kriterijumima.
 
 ## Redosled
 
 | Broj | Fajl | Cilj |
 |---:|---|---|
-| 15 | `15-release-automation-and-artifacts.md` | Release buildovi, checksum, SBOM, signing/provenance i multi-arch image |
-| 16 | `16-state-versioning-export-import.md` | Verzionisan state snapshot, bezbedan export/import i migracije |
-| 17 | `17-service-registry-and-provider-boundaries.md` | Registry servisa i jasne provider granice |
-| 18 | `18-compatibility-matrix-automation.md` | Machine-readable compatibility matrica povezana sa SDK testovima |
-| 19 | `19-dynamodb-protocol-and-data-model.md` | DynamoDB AWS JSON protokol, AttributeValue i storage osnova |
-| 20 | `20-dynamodb-table-lifecycle.md` | Create/Describe/List/Delete Table |
-| 21 | `21-dynamodb-item-crud.md` | Put/Get/Delete/početni UpdateItem |
-| 22 | `22-dynamodb-expressions-and-conditions.md` | Lexer/parser/evaluator za izraze i uslovne upise |
-| 23 | `23-dynamodb-query-scan-pagination.md` | Query, Scan, projection i prava paginacija |
-| 24 | `24-dynamodb-batch-operations.md` | BatchGetItem i BatchWriteItem |
-| 25 | `25-dynamodb-sdk-compatibility-suite.md` | Formalni DynamoDB SDK, persistence i concurrency testovi |
-| 26 | `26-sns-core-topics-and-publish.md` | SNS topics i Publish |
-| 27 | `27-sns-sqs-subscriptions.md` | SNS→SQS subscription i cross-service delivery |
-| 28 | `28-cloudwatch-logs-subset.md` | CloudWatch Logs grupe, streamovi, događaji i ograničeni filteri |
-| 29 | `29-v0.2-hardening-and-release.md` | Migracije, hardening, acceptance gate i v0.2 GO/NO-GO |
+| 30 | `30-azure-provider-gateway-and-endpoints.md` | Azure provider i zasebni Blob/Queue/Table listeneri |
+| 31 | `31-azure-storage-account-and-auth-contract.md` | Development account, SharedKey/SAS parser i connection string |
+| 32 | `32-blob-container-lifecycle.md` | Blob container lifecycle, metadata i listing |
+| 33 | `33-block-blob-core-crud.md` | Osnovni Block Blob upload/download/properties/delete |
+| 34 | `34-block-blob-staging-and-sdk-upload.md` | Put Block, Put Block List i high-level SDK upload |
+| 35 | `35-blob-listing-ranges-and-conditions.md` | Blob listing, range download i conditional requests |
+| 36 | `36-azure-queue-lifecycle.md` | Azure Queue lifecycle, metadata i listing |
+| 37 | `37-azure-queue-message-semantics.md` | Message TTL, visibility, pop receipt, update/delete/clear |
+| 38 | `38-azure-table-service-and-entity-crud.md` | Table lifecycle, typed entities, CRUD i ETag |
+| 39 | `39-azure-table-odata-query-and-pagination.md` | OData parser, filter, select, top i continuation |
+| 40 | `40-azure-table-batch-transactions.md` | Multipart entity group transactions i rollback |
+| 41 | `41-azure-sdk-compatibility-suite.md` | Formalni official Azure SDK compatibility paket |
+| 42 | `42-azure-manifest-compose-and-dev-ux.md` | Manifest resursi, CLI, Compose i Azure demo |
+| 43 | `43-azure-state-migration-export-import-and-matrix.md` | Migracije, snapshot i multi-provider compatibility report |
+| 44 | `44-v0.3-hardening-and-release.md` | Multicloud hardening i v0.3 GO/NO-GO |
 
-## Preporučeni način rada
+## Način rada
 
-1. Završiti i pregledati paket `00–14`.
-2. Pokretati promptove `15–29` strogo redom.
-3. Svaki prompt izvršiti u posebnom Codex task/thread-u.
+1. Završiti i pregledati prethodne promptove `00–29`.
+2. Promptove `30–44` izvršavati strogo redom.
+3. Svaki prompt pokrenuti kao poseban Codex task/thread.
 4. Ne pokretati dva prompta paralelno nad istim repozitorijumom.
-5. Posle svakog zadatka pregledati diff, test rezultate i compatibility status.
-6. Commit praviti tek nakon ljudskog pregleda završenog koraka.
-7. Ne prelaziti na sledeći prompt dok prethodni nema zelene obavezne testove ili jasno dokumentovano ograničenje okruženja.
+5. Posle svakog zadatka pregledati diff, migracije, SDK testove i compatibility status.
+6. Napraviti commit tek nakon ljudskog pregleda završenog koraka.
+7. Ne preći na sledeći prompt dok obavezne provere prethodnog nisu zelene ili precizno blokirane okruženjem.
 
 ## Ciljani rezultat
 
-Posle prompta 29 Emulith bi trebalo da ima testirani lokalni subset:
+Posle prompta 44 Emulith bi trebalo da ima testirani lokalni subset:
 
 ```text
-AWS STS
-AWS S3
-AWS SQS
-AWS DynamoDB
-AWS SNS
-AWS CloudWatch Logs
+AWS:
+  STS
+  S3
+  SQS
+  DynamoDB
+  SNS
+  CloudWatch Logs
+
+Azure:
+  Blob Storage
+  Queue Storage
+  Table Storage
 ```
 
 Uz:
 
 ```text
+četiri lokalna listenera
 SQLite/filesystem state
-schema migrations
+schema migracije
 snapshot export/import
 Docker
-SDK compatibility report
+official SDK compatibility report
 CI
 release artifacts
 SBOM/checksums
 ```
 
-To i dalje nije puna AWS kompatibilnost niti proizvodni servis.
+To nije puna Azure ili AWS kompatibilnost, ne sprovodi stvarnu cloud autentikaciju i nije namenjeno produkciji.
 
 ## Završni acceptance gate
 
@@ -73,9 +80,10 @@ make compatibility
 make compatibility-report
 make compatibility-check
 make demo
+make demo-azure
 make docker-build
 make release-snapshot
 make release-check
 ```
 
-Neke Docker ili release provere zavise od dostupnosti alata u lokalnom okruženju, ali promptovi zahtevaju precizno prijavljivanje svakog takvog ograničenja.
+Docker i release provere zavise od dostupnosti alata u lokalnom okruženju, ali svaki prompt zahteva precizno prijavljivanje ograničenja.

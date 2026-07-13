@@ -1,0 +1,52 @@
+{
+  "results": [
+    {
+      "id": "aws.dynamodb.BatchGetItem.multi-table",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.BatchWriteItem.multi-table",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.Query.primary-index",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.Scan.pagination",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.UpdateItem.concurrent-condition",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.item-crud.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.persistence.restart",
+      "status": "pass"
+    },
+    {
+      "id": "aws.dynamodb.table-lifecycle.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.s3.lifecycle.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.sns.topic-publish.lifecycle",
+      "status": "pass"
+    },
+    {
+      "id": "aws.sqs.lifecycle.basic",
+      "status": "pass"
+    },
+    {
+      "id": "aws.sts.GetCallerIdentity.basic",
+      "status": "pass"
+    }
+  ]
+}

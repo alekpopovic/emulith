@@ -153,7 +153,7 @@ func (s *Store) Reset(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	for _, table := range []string{"dynamodb_items", "dynamodb_attributes", "dynamodb_tables", "sqs_messages", "sqs_queues", "s3_objects", "s3_buckets"} {
+	for _, table := range []string{"sns_subscriptions", "sns_topics", "dynamodb_items", "dynamodb_attributes", "dynamodb_tables", "sqs_messages", "sqs_queues", "s3_objects", "s3_buckets"} {
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+table); err != nil {
 			_ = tx.Rollback()
 			return fmt.Errorf("clear %s: %w", table, err)

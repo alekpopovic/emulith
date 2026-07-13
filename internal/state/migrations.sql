@@ -35,3 +35,9 @@ CREATE TABLE IF NOT EXISTS dynamodb_items (
 );
 CREATE INDEX IF NOT EXISTS idx_dynamodb_items_query ON dynamodb_items(table_name, partition_key, sort_key);
 INSERT OR IGNORE INTO schema_version(version) VALUES (2);
+
+-- emulith migration 3: SNS topics and future subscription metadata
+CREATE TABLE IF NOT EXISTS sns_topics(name TEXT PRIMARY KEY, arn TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL, created_at TIMESTAMP NOT NULL);
+CREATE TABLE IF NOT EXISTS sns_subscriptions(id TEXT PRIMARY KEY, topic_arn TEXT NOT NULL, protocol TEXT NOT NULL, endpoint TEXT NOT NULL, created_at TIMESTAMP NOT NULL, FOREIGN KEY(topic_arn) REFERENCES sns_topics(arn) ON DELETE CASCADE, UNIQUE(topic_arn,protocol,endpoint));
+CREATE INDEX IF NOT EXISTS idx_sns_topics_arn ON sns_topics(arn);
+INSERT OR IGNORE INTO schema_version(version) VALUES (3);
