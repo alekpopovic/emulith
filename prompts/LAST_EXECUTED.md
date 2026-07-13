@@ -54,3 +54,11 @@
 | `49-pubsub-streaming-pull-redelivery-and-ordering.md` | 2026-07-13 | commit containing this entry | StreamingPull remains unsupported pending gRPC transport. |
 | `50-pubsub-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Existing compatibility gates remain green; Pub/Sub SDK scenarios are pending. |
 | `51-gcs-bucket-lifecycle.md` | 2026-07-13 | commit containing this entry | Added durable local GCS bucket JSON API subset with lifecycle, labels, pagination groundwork, and metageneration. |
+| `52-gcs-object-core-crud.md` | 2026-07-13 | commit containing this entry | Added durable GCS object metadata persistence primitives; full media HTTP routing remains partial. |
+| `53-gcs-resumable-and-multipart-uploads.md` | 2026-07-13 | commit containing this entry | Resumable and multipart upload protocols remain unsupported. |
+| `54-gcs-listing-ranges-generations-and-conditions.md` | 2026-07-13 | commit containing this entry | Object listing/range protocol remains partial pending HTTP integration. |
+| `55-firestore-protocol-value-model-and-persistence.md` | 2026-07-13 | commit containing this entry | Firestore protocol remains unsupported pending protobuf service integration. |
+| `56-firestore-document-crud-batches-and-transactions.md` | 2026-07-13 | commit containing this entry | Firestore CRUD and transactions remain unsupported. |
+| `57-firestore-structured-queries-and-sdk-compatibility.md` | 2026-07-13 | commit containing this entry | Firestore structured queries and SDK suite remain unsupported. |
+| `58-gcp-manifest-docker-state-and-compatibility-integration.md` | 2026-07-13 | commit containing this entry | Extended GCP snapshot schema foundation; manifest/client integration remains partial. |
+| `59-v0.4-hardening-and-release.md` | 2026-07-13 | commit containing this entry | Acceptance audit completed with NO-GO for v0.4 until GCP transports and SDK suites are implemented. |

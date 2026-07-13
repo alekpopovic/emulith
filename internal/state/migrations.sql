@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS azure_entities(account TEXT NOT NULL, table_name TEXT
 INSERT OR IGNORE INTO schema_version(version) VALUES (7);
 CREATE TABLE IF NOT EXISTS gcp_buckets(project TEXT NOT NULL,name TEXT NOT NULL,location TEXT NOT NULL,storage_class TEXT NOT NULL,labels TEXT NOT NULL DEFAULT '{}',etag TEXT NOT NULL,created_at TIMESTAMP NOT NULL,updated_at TIMESTAMP NOT NULL,metageneration INTEGER NOT NULL,PRIMARY KEY(project,name));
 INSERT OR IGNORE INTO schema_version(version) VALUES (8);
+CREATE TABLE IF NOT EXISTS gcp_objects(project TEXT NOT NULL,bucket TEXT NOT NULL,name TEXT NOT NULL,body_path TEXT NOT NULL,content_type TEXT NOT NULL,etag TEXT NOT NULL,generation INTEGER NOT NULL,metageneration INTEGER NOT NULL,size INTEGER NOT NULL,created_at TIMESTAMP NOT NULL,updated_at TIMESTAMP NOT NULL,PRIMARY KEY(project,bucket,name));
+INSERT OR IGNORE INTO schema_version(version) VALUES (9);
 CREATE TABLE IF NOT EXISTS azure_queue_messages(account TEXT NOT NULL, queue TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, inserted_at TIMESTAMP NOT NULL, expires_at TIMESTAMP NOT NULL, visible_at TIMESTAMP NOT NULL, dequeue_count INTEGER NOT NULL DEFAULT 0, pop_receipt TEXT NOT NULL, updated_at TIMESTAMP NOT NULL, PRIMARY KEY(account,queue,id), FOREIGN KEY(account,queue) REFERENCES azure_queues(account,name) ON DELETE CASCADE);
 CREATE INDEX IF NOT EXISTS idx_azure_queue_messages_visible ON azure_queue_messages(account,queue,visible_at,inserted_at,id);
 INSERT OR IGNORE INTO schema_version(version) VALUES (6);
