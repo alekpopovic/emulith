@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_EC2_METADATA_DISABLED: "true"
+
+jobs:
+  go-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Check formatting
+        run: |
+          files="$(gofmt -l .)"
+          if [ -n "$files" ]; then
+            echo "The following Go files need gofmt:"
+            echo "$files"
+            exit 1
+          fi
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: make build
+      - run: make compatibility
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t emulith-ci .
+      - name: Run and verify health
+        run: |
+          docker run -d --name emulith-ci -p 127.0.0.1:4566:4566 emulith-ci
+          trap 'docker rm -f emulith-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4566/_emulith/health; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker logs emulith-ci
+              exit 1
+            fi
+            sleep 1
+          done
+          test "$(docker inspect --format '{{.Config.User}}' emulith-ci)" = "10001:10001"

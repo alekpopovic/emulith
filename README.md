@@ -33,6 +33,8 @@ Emulith does not claim full AWS parity.
 
 Run `make compatibility` to exercise real AWS SDK for Go v2 clients against an in-process, loopback-only Emulith server. The suite does not contact or compare against real AWS.
 
+Local CI parity commands are `gofmt -l .`, `go vet ./...`, `go test -race ./...`, `make build`, `make compatibility`, and `make docker-build`.
+
 ## Reset local state
 
 The unauthenticated reset endpoint is intended only for trusted local development networks and destructively removes all Emulith-managed state:
