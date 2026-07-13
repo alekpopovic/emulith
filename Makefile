@@ -1,4 +1,4 @@
-.PHONY: build test run clean docker-build docker-run compatibility
+.PHONY: build test run clean docker-build docker-run compatibility demo
 
 IMAGE ?= emulith/emulith
 TAG ?= dev
@@ -28,3 +28,6 @@ docker-build:
 
 docker-run: docker-build
 	docker run --rm -p 4566:4566 -v emulith-data:/var/lib/emulith $(IMAGE):$(TAG)
+
+demo:
+	./scripts/demo-aws-poc.sh

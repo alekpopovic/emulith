@@ -14,6 +14,12 @@ make build
 curl http://localhost:4566/_emulith/health
 ```
 
+Run the complete local SDK-backed POC demo with:
+
+```bash
+make demo
+```
+
 Configuration can be supplied with `--addr`/`EMULITH_ADDR` and `--data-dir`/`EMULITH_DATA_DIR`; flags take precedence.
 
 ## Compatibility

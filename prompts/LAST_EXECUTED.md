@@ -16,3 +16,4 @@
 | `11-github-actions-ci.md` | 2026-07-13 | commit containing this entry | Added least-privilege Go quality, compatibility, and Docker health CI jobs. |
 | `12-governance-and-release-docs.md` | 2026-07-13 | commit containing this entry | Added licensing, DCO, governance, security, architecture, compatibility, roadmap, and release documentation. |
 | `13-hardening-before-poc.md` | 2026-07-13 | commit containing this entry | Hardened S3 overwrite atomicity, panic recovery, SQS attribute conflicts, and bounded fuzz coverage. |
+| `14-poc-demo-script.md` | 2026-07-13 | commit containing this entry | Added and passed the deterministic loopback-only AWS SDK POC demo and reset verification. |
