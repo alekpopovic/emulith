@@ -4,7 +4,10 @@ Generated from `compatibility/aws.yaml`. Statuses: supported (default SDK test p
 
 | Service | Operation | Status | Protocol | Test ID | Notes | Known deviations | Since |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| dynamodb | CreateTable | experimental | AWS-JSON-1.0 |  | Protocol is recognized but operations are not implemented yet. | Returns UnknownOperationException. | v0.2.0-dev |
+| dynamodb | CreateTable | supported | AWS-JSON-1.0 | aws.dynamodb.table-lifecycle.basic | PAY_PER_REQUEST tables with scalar HASH and optional RANGE keys. | Tables become ACTIVE immediately; secondary indexes and advanced options are rejected. | v0.2.0-dev |
+| dynamodb | DeleteTable | partial | AWS-JSON-1.0 |  | Immediate atomic local deletion. | No asynchronous deletion period. | v0.2.0-dev |
+| dynamodb | DescribeTable | partial | AWS-JSON-1.0 |  | Returns persisted local table metadata. | Capacity and index metrics are omitted. | v0.2.0-dev |
+| dynamodb | ListTables | partial | AWS-JSON-1.0 |  | Lexical pagination with Limit and ExclusiveStartTableName. | Local tables only. | v0.2.0-dev |
 | s3 | CreateBucket | supported | REST-XML | aws.s3.lifecycle.basic | Path-style local bucket lifecycle. | No virtual-host addressing. | v0.1.0-poc |
 | s3 | DeleteObject | partial | REST-XML |  | Idempotent local deletion. | No version markers. | v0.1.0-poc |
 | s3 | GetObject | partial | REST-XML |  | Basic full-body reads. | No ranges or versioning. | v0.1.0-poc |

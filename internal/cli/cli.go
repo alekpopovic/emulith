@@ -226,7 +226,7 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 		if err := provider.Register("sqs", sqs.New(store)); err != nil {
 			return err
 		}
-		if err := provider.Register("dynamodb", dynamodb.New()); err != nil {
+		if err := provider.Register("dynamodb", dynamodb.New(store)); err != nil {
 			return err
 		}
 		srv := server.NewWithState(cfg.Addr, version, store, logger, provider.Gateway(), registry)

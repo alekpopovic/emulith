@@ -22,3 +22,4 @@
 | `17-service-registry-and-provider-boundaries.md` | 2026-07-13 | commit containing this entry | Added deterministic service registry, AWS composition root, aggregated health, and reset lifecycle hooks. |
 | `18-compatibility-matrix-automation.md` | 2026-07-13 | commit containing this entry | Added a validated AWS catalog, stable SDK test IDs, deterministic reports, and CI freshness enforcement. |
 | `19-dynamodb-protocol-and-data-model.md` | 2026-07-13 | commit containing this entry | Added DynamoDB JSON routing, bounded AttributeValue/key models, persistence schema, and shaped unsupported responses. |
+| `20-dynamodb-table-lifecycle.md` | 2026-07-13 | commit containing this entry | Implemented validated DynamoDB table lifecycle, lexical pagination, atomic persistence, and real SDK compatibility coverage. |
