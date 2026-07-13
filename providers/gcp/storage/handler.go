@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/alekpopovic/emulith/internal/state"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -19,6 +22,10 @@ var bucketRE = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$`)
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("x-goog-request-id", "local-request")
+	if strings.HasPrefix(r.URL.Path, "/upload/storage/v1/b/") && r.Method == "POST" {
+		h.upload(w, r)
+		return
+	}
 	if r.URL.Path != "/storage/v1/b" && !strings.HasPrefix(r.URL.Path, "/storage/v1/b/") {
 		errJSON(w, 404, "notFound", "Not found")
 		return
@@ -63,6 +70,37 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := strings.TrimPrefix(r.URL.Path, "/storage/v1/b/")
+	if strings.Contains(name, "/o/") {
+		p := strings.SplitN(name, "/o/", 2)
+		if len(p) != 2 {
+			errJSON(w, 400, "invalid", "invalid object")
+			return
+		}
+		o, e := h.Store.GetGCPObject(r.Context(), h.Project, p[0], p[1])
+		if e != nil {
+			errJSON(w, 404, "notFound", "object not found")
+			return
+		}
+		if r.Method == "DELETE" {
+			h.Store.DeleteGCPObject(r.Context(), h.Project, p[0], p[1])
+			os.Remove(o.BodyPath)
+			w.WriteHeader(204)
+			return
+		}
+		if r.Method == "GET" && q.Get("alt") == "media" {
+			f, e := os.Open(o.BodyPath)
+			if e != nil {
+				errJSON(w, 404, "notFound", "object body missing")
+				return
+			}
+			defer f.Close()
+			w.Header().Set("Content-Type", o.ContentType)
+			io.Copy(w, f)
+			return
+		}
+		json.NewEncoder(w).Encode(o)
+		return
+	}
 	if !bucketRE.MatchString(name) {
 		errJSON(w, 400, "invalid", "invalid bucket")
 		return
@@ -95,6 +133,59 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		errJSON(w, 405, "methodNotAllowed", "unsupported")
 	}
+}
+
+func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
+	rest := strings.TrimPrefix(r.URL.Path, "/upload/storage/v1/b/")
+	parts := strings.SplitN(rest, "/o/", 2)
+	if len(parts) != 2 || !bucketRE.MatchString(parts[0]) {
+		errJSON(w, 400, "invalid", "invalid upload path")
+		return
+	}
+	if _, e := h.Store.GetGCPBucket(r.Context(), h.Project, parts[0]); e != nil {
+		errJSON(w, 404, "notFound", "bucket not found")
+		return
+	}
+	obj := parts[1]
+	if obj == "" {
+		errJSON(w, 400, "invalid", "object required")
+		return
+	}
+	path, e := h.Store.NewObjectBodyPath("gcp", "storage", parts[0], obj)
+	if e != nil {
+		errJSON(w, 400, "invalid", "invalid object")
+		return
+	}
+	if e = os.MkdirAll(filepath.Dir(path), 0700); e != nil {
+		errJSON(w, 500, "internal", "storage failure")
+		return
+	}
+	tmp := path + ".tmp"
+	f, e := os.Create(tmp)
+	if e != nil {
+		errJSON(w, 500, "internal", "storage failure")
+		return
+	}
+	n, e := io.Copy(f, io.LimitReader(r.Body, 64<<20))
+	f.Close()
+	if e != nil {
+		os.Remove(tmp)
+		errJSON(w, 400, "invalid", "upload failed")
+		return
+	}
+	if e = os.Rename(tmp, path); e != nil {
+		os.Remove(tmp)
+		errJSON(w, 500, "internal", "storage failure")
+		return
+	}
+	now := time.Now().UTC()
+	o := state.GCPObject{Project: h.Project, Bucket: parts[0], Name: obj, BodyPath: path, ContentType: r.Header.Get("Content-Type"), ETag: "\"local\"", Generation: now.UnixNano(), Metageneration: 1, Size: n, CreatedAt: now, UpdatedAt: now}
+	if e = h.Store.PutGCPObject(r.Context(), o); e != nil {
+		errJSON(w, 500, "internal", "storage failure")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(o)
 }
 func errJSON(w http.ResponseWriter, code int, reason, msg string) {
 	w.WriteHeader(code)
