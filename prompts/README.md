@@ -1,78 +1,76 @@
-# Emulith — Codex GPT-5.6 prompt paket 45–59
+# Emulith — Codex GPT-5.6 prompt paket 60–74
 
-Ovaj paket nastavlja Emulith promptove `00–44`. Cilj je da multi-cloud `v0.3.0` projekat proširi GCP servisima i pripremi prvi AWS + Azure + GCP `v0.4.0`.
+Ovaj paket nastavlja Emulith promptove `00–59`. Cilj je da tro-cloud `v0.4.0` projekat proširi lokalnim serverless runtime-om i pripremi `v0.5.0`.
 
-Svaki prompt je zaseban Markdown fajl i predviđen je kao poseban Codex task u istom repozitorijumu. Promptovi su napisani na engleskom zbog preciznijeg rada sa gRPC/HTTP protokolima, zvaničnim SDK klijentima, migracijama i acceptance kriterijumima.
+Svaki prompt je zaseban Markdown fajl i predviđen je kao poseban Codex task u istom repozitorijumu. Promptovi su napisani na engleskom zbog preciznijeg rada sa OCI/Docker runtime-om, provider protokolima, event envelope-ima, retry semantikom i acceptance kriterijumima.
 
 ## Redosled
 
 | Broj | Fajl | Cilj |
 |---:|---|---|
-| 45 | `45-gcp-provider-grpc-and-endpoints.md` | GCP provider, gRPC osnova i Storage HTTP listener |
-| 46 | `46-gcp-project-credentials-and-emulator-env.md` | Lokalni project, resource names, permissive auth i `gcp env` |
-| 47 | `47-pubsub-topic-and-subscription-lifecycle.md` | Pub/Sub topics i pull subscriptions |
-| 48 | `48-pubsub-publish-pull-and-ack.md` | Publish, Pull, Acknowledge i ack deadline |
-| 49 | `49-pubsub-streaming-pull-redelivery-and-ordering.md` | StreamingPull, backpressure, redelivery i ordering keys |
-| 50 | `50-pubsub-sdk-compatibility-suite.md` | Formalni official-client Pub/Sub paket |
-| 51 | `51-gcs-bucket-lifecycle.md` | Cloud Storage bucket CRUD/listing/metadata |
-| 52 | `52-gcs-object-core-crud.md` | Object upload/download/attrs/patch/delete |
-| 53 | `53-gcs-resumable-and-multipart-uploads.md` | Multipart i resumable upload protokol |
-| 54 | `54-gcs-listing-ranges-generations-and-conditions.md` | Listing, ranges, generation i preconditions |
-| 55 | `55-firestore-protocol-value-model-and-persistence.md` | Firestore gRPC, Value model, paths i storage |
-| 56 | `56-firestore-document-crud-batches-and-transactions.md` | CRUD, batches, transforms i transactions |
-| 57 | `57-firestore-structured-queries-and-sdk-compatibility.md` | RunQuery i formalni Firestore SDK testovi |
-| 58 | `58-gcp-manifest-docker-state-and-compatibility-integration.md` | Manifest, Docker, migracije, snapshot i GCP demo |
-| 59 | `59-v0.4-hardening-and-release.md` | Three-cloud hardening i v0.4 GO/NO-GO |
+| 60 | `60-serverless-execution-engine-contract.md` | Interni function/revision/invocation/runtime ugovori i state machine |
+| 61 | `61-oci-container-runtime-and-sandbox.md` | Docker/OCI execution backend, warm pool i bezbednosne granice |
+| 62 | `62-function-artifacts-build-cache-and-manifest.md` | Function manifest, image/source build, revision i cache |
+| 63 | `63-durable-invocation-queue-retries-and-dlq.md` | Durable event delivery, retry, concurrency, scheduling i DLQ |
+| 64 | `64-aws-lambda-control-plane.md` | AWS Lambda image-based control-plane subset |
+| 65 | `65-aws-lambda-runtime-api-and-invoke.md` | Lambda Runtime API, Invoke, cold/warm i async delivery |
+| 66 | `66-aws-lambda-event-sources-eventbridge-and-scheduler.md` | SQS/SNS/S3 triggeri, EventBridge i scheduler |
+| 67 | `67-azure-functions-custom-handler-http-and-timer.md` | Azure custom handler, HTTP i timer trigger |
+| 68 | `68-azure-functions-bindings-and-event-grid.md` | Azure Queue/Blob binding i Event Grid subset |
+| 69 | `69-gcp-functions-framework-and-cloud-run-functions.md` | GCP HTTP/CloudEvent Functions Framework runtime |
+| 70 | `70-gcp-eventarc-cloud-scheduler-and-service-triggers.md` | Pub/Sub/Storage/Firestore triggeri, Eventarc i Scheduler |
+| 71 | `71-serverless-observability-logs-traces-and-metrics.md` | Logs, invocation history, W3C tracing, OTLP i metrics |
+| 72 | `72-serverless-compatibility-chaos-and-e2e-suite.md` | Formalni compatibility, chaos i multicloud E2E testovi |
+| 73 | `73-serverless-manifest-docker-state-and-dev-ux.md` | Kompletan manifest/CLI/Compose/snapshot/demo UX |
+| 74 | `74-v0.5-serverless-hardening-and-release.md` | Security/correctness hardening i v0.5 GO/NO-GO |
 
 ## Način rada
 
-1. Završiti i pregledati promptove `00–44`.
-2. Izvršavati `45–59` strogo redom.
+1. Završiti i pregledati promptove `00–59`.
+2. Izvršavati `60–74` strogo redom.
 3. Svaki prompt pokrenuti kao zaseban Codex task/thread.
 4. Ne pokretati paralelne taskove nad istim repozitorijumom.
-5. Posle svakog koraka pregledati diff, migracije, official-client testove i compatibility status.
+5. Posle svakog koraka pregledati diff, migracije, runtime security, official-client testove i compatibility status.
 6. Commit praviti tek posle ljudskog pregleda.
 7. Ne prelaziti na sledeći prompt dok obavezne provere prethodnog nisu zelene ili precizno blokirane okruženjem.
 
 ## Ciljani rezultat
 
-Posle prompta 59 Emulith bi trebalo da ima testirani lokalni subset:
+Posle prompta 74 Emulith bi trebalo da ima lokalni, testirani subset:
 
 ```text
+Shared:
+  OCI/Docker execution engine
+  immutable function revisions
+  warm container pool
+  durable invocation queue
+  retry/backoff
+  DLQ
+  schedules
+  logs/traces/metrics
+
 AWS:
-  STS
-  S3
-  SQS
-  DynamoDB
-  SNS
-  CloudWatch Logs
+  Lambda image custom runtime
+  Runtime API
+  Invoke
+  SQS/SNS/S3 triggers
+  EventBridge
+  Scheduler
 
 Azure:
-  Blob Storage
-  Queue Storage
-  Table Storage
+  Functions custom handler
+  HTTP/Timer
+  Queue/Blob bindings
+  Event Grid subset
 
 GCP:
-  Pub/Sub
-  Cloud Storage
-  Firestore
+  Functions Framework HTTP/CloudEvent
+  Pub/Sub/Storage/Firestore triggers
+  Eventarc subset
+  Cloud Scheduler subset
 ```
 
-Uz:
-
-```text
-sedam lokalnih listenera
-SQLite/filesystem state
-schema migracije
-snapshot export/import
-Docker
-official SDK compatibility report
-CI
-release artifacts
-SBOM/checksums
-```
-
-To nije puna cloud kompatibilnost, ne sprovodi stvarni IAM/auth i nije namenjeno produkciji.
+To nije puna kompatibilnost sa managed function platformama i nije jaka multi-tenant izolacija. Docker daemon je eksplicitna lokalna trust granica.
 
 ## Završni acceptance gate
 
@@ -88,6 +86,8 @@ make demo
 make demo-azure
 make demo-gcp
 make demo-multicloud
+make demo-serverless
+make demo-multicloud-serverless
 make docker-build
 make release-snapshot
 make release-check
