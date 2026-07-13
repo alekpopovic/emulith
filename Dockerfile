@@ -9,10 +9,14 @@ ARG BUILT=unknown
 RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.built=${BUILT}" -o /out/emulith ./cmd/emulith
 
 FROM alpine:3.20.3
+ARG VERSION=dev
+ARG COMMIT=unknown
 LABEL org.opencontainers.image.title="Emulith" \
       org.opencontainers.image.description="Open-source local cloud emulator for development and CI" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
-      org.opencontainers.image.source="https://github.com/alekpopovic/emulith"
+      org.opencontainers.image.source="https://github.com/alekpopovic/emulith" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${COMMIT}"
 RUN apk add --no-cache ca-certificates && addgroup -S -g 10001 emulith && adduser -S -D -H -u 10001 -G emulith emulith && mkdir -p /var/lib/emulith && chown emulith:emulith /var/lib/emulith
 COPY --from=builder /out/emulith /usr/local/bin/emulith
 COPY LICENSE NOTICE /licenses/

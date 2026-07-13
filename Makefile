@@ -1,4 +1,4 @@
-.PHONY: build test run clean docker-build docker-run compatibility demo
+.PHONY: build test run clean docker-build docker-run compatibility demo release-snapshot release-check
 
 IMAGE ?= emulith/emulith
 TAG ?= dev
@@ -31,3 +31,9 @@ docker-run: docker-build
 
 demo:
 	./scripts/demo-aws-poc.sh
+
+release-snapshot:
+	./scripts/release-snapshot.sh
+
+release-check:
+	./scripts/release-check.sh

@@ -1,0 +1,20 @@
+name: Release validation
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-go@v5
+        with: {go-version-file: go.mod, cache: true}
+      - run: make release-snapshot release-check
+      - run: docker buildx build --platform linux/amd64,linux/arm64 .
+      - uses: actions/upload-artifact@v4
+        with: {name: release-snapshot, path: dist/}
