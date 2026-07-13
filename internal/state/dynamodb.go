@@ -104,6 +104,9 @@ func (s *Store) GetDynamoItem(ctx context.Context, table string, key []byte) ([]
 	return b, e
 }
 func (s *Store) PutDynamoItem(ctx context.Context, table string, key, partition, sortKey, payload []byte) ([]byte, error) {
+	return s.ConditionalPutDynamoItem(ctx, table, key, partition, sortKey, payload, nil)
+}
+func (s *Store) ConditionalPutDynamoItem(ctx context.Context, table string, key, partition, sortKey, payload []byte, check func([]byte) error) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tx, e := s.db.BeginTx(ctx, nil)
@@ -116,6 +119,11 @@ func (s *Store) PutDynamoItem(ctx context.Context, table string, key, partition,
 	if e != nil && !errors.Is(e, sql.ErrNoRows) {
 		return nil, e
 	}
+	if check != nil {
+		if e = check(bytes.Clone(old)); e != nil {
+			return nil, e
+		}
+	}
 	_, e = tx.ExecContext(ctx, `INSERT INTO dynamodb_items(table_name,primary_key,partition_key,sort_key,payload,item_size,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(table_name,primary_key) DO UPDATE SET payload=excluded.payload,item_size=excluded.item_size,updated_at=excluded.updated_at`, table, key, partition, nullBytes(sortKey), payload, len(payload), time.Now().UTC())
 	if e != nil {
 		return nil, e
@@ -123,6 +131,9 @@ func (s *Store) PutDynamoItem(ctx context.Context, table string, key, partition,
 	return old, tx.Commit()
 }
 func (s *Store) DeleteDynamoItem(ctx context.Context, table string, key []byte) ([]byte, error) {
+	return s.ConditionalDeleteDynamoItem(ctx, table, key, nil)
+}
+func (s *Store) ConditionalDeleteDynamoItem(ctx context.Context, table string, key []byte, check func([]byte) error) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tx, e := s.db.BeginTx(ctx, nil)
@@ -132,11 +143,16 @@ func (s *Store) DeleteDynamoItem(ctx context.Context, table string, key []byte) 
 	defer tx.Rollback()
 	var old []byte
 	e = tx.QueryRowContext(ctx, `SELECT payload FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key).Scan(&old)
-	if errors.Is(e, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if e != nil {
+	if e != nil && !errors.Is(e, sql.ErrNoRows) {
 		return nil, e
+	}
+	if check != nil {
+		if e = check(bytes.Clone(old)); e != nil {
+			return nil, e
+		}
+	}
+	if errors.Is(e, sql.ErrNoRows) || old == nil {
+		return nil, nil
 	}
 	if _, e = tx.ExecContext(ctx, `DELETE FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key); e != nil {
 		return nil, e

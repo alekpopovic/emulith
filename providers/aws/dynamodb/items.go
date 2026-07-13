@@ -3,7 +3,6 @@ package dynamodb
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/alekpopovic/emulith/internal/state"
 	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 	"net/http"
@@ -12,18 +11,19 @@ import (
 )
 
 type itemInput struct {
-	TableName                 string
-	Item                      map[string]Value
-	Key                       map[string]Value
-	ReturnValues              string
-	ConsistentRead            bool
-	UpdateExpression          string
-	ExpressionAttributeNames  map[string]string
-	ExpressionAttributeValues map[string]Value
-	ConditionExpression       string
-	Expected                  json.RawMessage
-	ProjectionExpression      string
-	AttributesToGet           json.RawMessage
+	TableName                           string
+	Item                                map[string]Value
+	Key                                 map[string]Value
+	ReturnValues                        string
+	ConsistentRead                      bool
+	UpdateExpression                    string
+	ExpressionAttributeNames            map[string]string
+	ExpressionAttributeValues           map[string]Value
+	ConditionExpression                 string
+	Expected                            json.RawMessage
+	ProjectionExpression                string
+	AttributesToGet                     json.RawMessage
+	ReturnValuesOnConditionCheckFailure string
 }
 
 func (h *Handler) tableAndKey(r *awsprovider.Request, name string, item map[string]Value) (state.DynamoTable, []byte, []byte, []byte, error) {
@@ -56,7 +56,7 @@ func (h *Handler) putItem(w http.ResponseWriter, r *awsprovider.Request) {
 		h.err(w, 400, "ValidationException", e.Error())
 		return
 	}
-	if in.ConditionExpression != "" || len(in.Expected) > 0 || (in.ReturnValues != "" && in.ReturnValues != "NONE" && in.ReturnValues != "ALL_OLD") {
+	if len(in.Expected) > 0 || in.ReturnValuesOnConditionCheckFailure != "" || (in.ReturnValues != "" && in.ReturnValues != "NONE" && in.ReturnValues != "ALL_OLD") {
 		h.err(w, 400, "ValidationException", "unsupported PutItem option")
 		return
 	}
@@ -79,9 +79,14 @@ func (h *Handler) putItem(w http.ResponseWriter, r *awsprovider.Request) {
 		h.err(w, 400, "ValidationException", "item is invalid or too large")
 		return
 	}
-	old, e := h.store.PutDynamoItem(r.HTTPRequest.Context(), in.TableName, key, p, s, payload)
+	check, e := compileItemCondition(in.ConditionExpression, in.ExpressionAttributeNames, in.ExpressionAttributeValues)
 	if e != nil {
-		h.err(w, 500, "InternalServerError", e.Error())
+		h.err(w, 400, "ValidationException", e.Error())
+		return
+	}
+	old, e := h.store.ConditionalPutDynamoItem(r.HTTPRequest.Context(), in.TableName, key, p, s, payload, func(b []byte) error { return checkPayload(check, b) })
+	if e != nil {
+		h.writeMutationError(w, e)
 		return
 	}
 	out := map[string]any{}
@@ -126,7 +131,7 @@ func (h *Handler) deleteItem(w http.ResponseWriter, r *awsprovider.Request) {
 		h.err(w, 400, "ValidationException", e.Error())
 		return
 	}
-	if in.ConditionExpression != "" || len(in.Expected) > 0 || (in.ReturnValues != "" && in.ReturnValues != "NONE" && in.ReturnValues != "ALL_OLD") {
+	if len(in.Expected) > 0 || in.ReturnValuesOnConditionCheckFailure != "" || (in.ReturnValues != "" && in.ReturnValues != "NONE" && in.ReturnValues != "ALL_OLD") {
 		h.err(w, 400, "ValidationException", "unsupported DeleteItem option")
 		return
 	}
@@ -135,9 +140,14 @@ func (h *Handler) deleteItem(w http.ResponseWriter, r *awsprovider.Request) {
 		h.stateOrValidation(w, e)
 		return
 	}
-	old, e := h.store.DeleteDynamoItem(r.HTTPRequest.Context(), in.TableName, key)
+	check, e := compileItemCondition(in.ConditionExpression, in.ExpressionAttributeNames, in.ExpressionAttributeValues)
 	if e != nil {
-		h.err(w, 500, "InternalServerError", e.Error())
+		h.err(w, 400, "ValidationException", e.Error())
+		return
+	}
+	old, e := h.store.ConditionalDeleteDynamoItem(r.HTTPRequest.Context(), in.TableName, key, func(b []byte) error { return checkPayload(check, b) })
+	if e != nil {
+		h.writeMutationError(w, e)
 		return
 	}
 	out := map[string]any{}
@@ -211,11 +221,17 @@ func (h *Handler) updateItem(w http.ResponseWriter, r *awsprovider.Request) {
 		h.err(w, 400, "ValidationException", e.Error())
 		return
 	}
-	if in.ConditionExpression != "" {
-		h.err(w, 400, "ValidationException", "conditions unsupported")
+	if in.ReturnValuesOnConditionCheckFailure != "" {
+		h.err(w, 400, "ValidationException", "ReturnValuesOnConditionCheckFailure is unsupported")
 		return
 	}
-	actions, e := parseUpdate(in.UpdateExpression)
+	switch in.ReturnValues {
+	case "", "NONE", "ALL_OLD", "ALL_NEW", "UPDATED_OLD", "UPDATED_NEW":
+	default:
+		h.err(w, 400, "ValidationException", "unsupported ReturnValues")
+		return
+	}
+	plan, e := parseUpdatePlan(in.UpdateExpression, in.ExpressionAttributeNames, in.ExpressionAttributeValues)
 	if e != nil {
 		h.err(w, 400, "ValidationException", e.Error())
 		return
@@ -225,39 +241,43 @@ func (h *Handler) updateItem(w http.ResponseWriter, r *awsprovider.Request) {
 		h.stateOrValidation(w, e)
 		return
 	}
+	condition, e := compileItemCondition(in.ConditionExpression, in.ExpressionAttributeNames, in.ExpressionAttributeValues)
+	if e != nil {
+		h.err(w, 400, "ValidationException", e.Error())
+		return
+	}
 	old, next, e := h.store.UpdateDynamoItem(r.HTTPRequest.Context(), in.TableName, key, p, s, func(b []byte) ([]byte, error) {
 		item := map[string]Value{}
 		if b != nil {
 			if e := json.Unmarshal(b, &item); e != nil {
 				return nil, e
 			}
-		} else {
+		}
+		if condition != nil {
+			ok, er := evalCondition(condition, item)
+			if er != nil {
+				return nil, er
+			}
+			if !ok {
+				return nil, errConditionFailed
+			}
+		}
+		if b == nil {
 			for k, v := range in.Key {
 				item[k] = v
 			}
 		}
-		for _, a := range actions {
-			name := in.ExpressionAttributeNames[a.name]
-			if name == "" {
-				return nil, fmt.Errorf("missing name mapping %s", a.name)
-			}
-			if name == t.PartitionKey || name == t.SortKey {
-				return nil, errors.New("cannot update primary key")
-			}
-			if a.kind == "SET" {
-				v, ok := in.ExpressionAttributeValues[a.value]
-				if !ok {
-					return nil, fmt.Errorf("missing value %s", a.value)
-				}
-				item[name] = v
-			} else {
-				delete(item, name)
-			}
+		if er := applyUpdatePlan(plan, item, t.PartitionKey, t.SortKey); er != nil {
+			return nil, er
 		}
-		return json.Marshal(item)
+		encoded, er := json.Marshal(item)
+		if er == nil && len(encoded) > MaxItemSize {
+			er = errors.New("updated item is too large")
+		}
+		return encoded, er
 	})
 	if e != nil {
-		h.err(w, 400, "ValidationException", e.Error())
+		h.writeMutationError(w, e)
 		return
 	}
 	var before, after map[string]Value
@@ -280,8 +300,8 @@ func (h *Handler) updateItem(w http.ResponseWriter, r *awsprovider.Request) {
 		if in.ReturnValues == "UPDATED_OLD" {
 			src = before
 		}
-		for _, a := range actions {
-			n := in.ExpressionAttributeNames[a.name]
+		for _, a := range plan.actions {
+			n := a.path[0].name
 			if v, ok := src[n]; ok {
 				picked[n] = v
 			}
@@ -292,6 +312,41 @@ func (h *Handler) updateItem(w http.ResponseWriter, r *awsprovider.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(out)
+}
+
+var errConditionFailed = errors.New("condition evaluated to false")
+
+func compileItemCondition(s string, n map[string]string, v map[string]Value) (*expression, error) {
+	if s == "" {
+		return nil, nil
+	}
+	return parseCondition(s, n, v)
+}
+func checkPayload(e *expression, b []byte) error {
+	if e == nil {
+		return nil
+	}
+	item := map[string]Value{}
+	if b != nil {
+		if err := json.Unmarshal(b, &item); err != nil {
+			return err
+		}
+	}
+	ok, err := evalCondition(e, item)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errConditionFailed
+	}
+	return nil
+}
+func (h *Handler) writeMutationError(w http.ResponseWriter, e error) {
+	if errors.Is(e, errConditionFailed) {
+		h.err(w, 400, "ConditionalCheckFailedException", "The conditional request failed")
+	} else {
+		h.err(w, 400, "ValidationException", e.Error())
+	}
 }
 func (h *Handler) stateErr(w http.ResponseWriter, e error) {
 	if errors.Is(e, state.ErrDynamoNotFound) {

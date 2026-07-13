@@ -94,6 +94,15 @@ func TestDynamoDBItemCRUDSDK(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
+		_, e = c.UpdateItem(ctx, &sdk.UpdateItemInput{TableName: &name, Key: key, UpdateExpression: aws.String("SET #n = if_not_exists(#n, :zero) + :one"), ConditionExpression: aws.String("attribute_exists(#pk)"), ExpressionAttributeNames: map[string]string{"#n": "counter", "#pk": "pk"}, ExpressionAttributeValues: map[string]types.AttributeValue{":zero": &types.AttributeValueMemberN{Value: "0"}, ":one": &types.AttributeValueMemberN{Value: "1"}}})
+		if e != nil {
+			t.Fatal(e)
+		}
+		_, e = c.PutItem(ctx, &sdk.PutItemInput{TableName: &name, Item: item, ConditionExpression: aws.String("attribute_not_exists(#pk)"), ExpressionAttributeNames: map[string]string{"#pk": "pk"}})
+		var conditional *types.ConditionalCheckFailedException
+		if !errors.As(e, &conditional) {
+			t.Fatalf("expected conditional failure: %v", e)
+		}
 		old := types.ReturnValueAllOld
 		d, e := c.DeleteItem(ctx, &sdk.DeleteItemInput{TableName: &name, Key: key, ReturnValues: old})
 		if e != nil || len(d.Attributes) == 0 {
