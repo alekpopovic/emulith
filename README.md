@@ -41,3 +41,13 @@ The unauthenticated reset endpoint is intended only for trusted local developmen
 emulith reset
 emulith reset --endpoint http://localhost:4566
 ```
+
+## Experimental manifest
+
+Create supported resources through the same public SDK APIs:
+
+```bash
+emulith apply -f examples/manifests/aws-basic/emulith.yaml
+```
+
+Schema version 1 accepts only S3 buckets and standard SQS queues and may change before a stable release.

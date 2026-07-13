@@ -1,0 +1,8 @@
+version: 1
+project: demo
+resources:
+  - type: aws.s3.bucket
+    name: invoices
+    region: us-east-1
+  - type: aws.sqs.queue
+    name: invoice-events

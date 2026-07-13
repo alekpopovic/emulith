@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/emulith/emulith/internal/config"
+	"github.com/emulith/emulith/internal/manifest"
 	"github.com/emulith/emulith/internal/server"
 	"github.com/emulith/emulith/internal/state"
 	awsprovider "github.com/emulith/emulith/providers/aws"
@@ -33,8 +34,37 @@ func NewCommandWithClient(out, errOut io.Writer, version, commit, built string, 
 	root := &cobra.Command{Use: "emulith", SilenceUsage: true, SilenceErrors: true}
 	root.SetOut(out)
 	root.SetErr(errOut)
-	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newResetCommand(out, client))
+	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newResetCommand(out, client), newApplyCommand(out, client))
 	return root
+}
+
+func newApplyCommand(out io.Writer, client *http.Client) *cobra.Command {
+	endpoint := os.Getenv("EMULITH_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "http://localhost:4566"
+	}
+	var file string
+	cmd := &cobra.Command{Use: "apply", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
+		if file == "" {
+			return errors.New("--file is required")
+		}
+		data, err := os.ReadFile(file)
+		if err != nil {
+			return fmt.Errorf("read manifest: %w", err)
+		}
+		m, err := manifest.Parse(data)
+		if err != nil {
+			return err
+		}
+		applier, err := manifest.NewApplier(endpoint, client)
+		if err != nil {
+			return err
+		}
+		return applier.Apply(cmd.Context(), m, out)
+	}}
+	cmd.Flags().StringVarP(&file, "file", "f", "", "manifest file")
+	cmd.Flags().StringVar(&endpoint, "endpoint", endpoint, "Emulith base endpoint")
+	return cmd
 }
 
 func newResetCommand(out io.Writer, client *http.Client) *cobra.Command {

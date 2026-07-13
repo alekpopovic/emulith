@@ -12,3 +12,4 @@
 | `07-admin-reset-and-cli.md` | 2026-07-13 | commit containing this entry | Added isolated destructive reset API and tested reset CLI client. |
 | `08-docker-and-compose.md` | 2026-07-13 | commit containing this entry | Added reproducible non-root Docker image, Make targets, and Compose example. |
 | `09-aws-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Added a reusable loopback-only full-server SDK harness and compatibility target. |
+| `10-manifest-apply.md` | 2026-07-13 | commit containing this entry | Added strict experimental manifests and idempotent SDK-backed apply CLI. |
