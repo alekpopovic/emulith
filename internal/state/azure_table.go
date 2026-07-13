@@ -18,6 +18,29 @@ type AzureEntity struct {
 	Properties                                 map[string]json.RawMessage
 }
 
+func (s *Store) ListAzureEntities(ctx context.Context, a, t string) ([]AzureEntity, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	rows, e := s.db.QueryContext(ctx, `SELECT account,table_name,partition_key,row_key,etag,timestamp,properties FROM azure_entities WHERE account=? AND table_name=? ORDER BY partition_key,row_key`, a, t)
+	if e != nil {
+		return nil, e
+	}
+	defer rows.Close()
+	var out []AzureEntity
+	for rows.Next() {
+		var x AzureEntity
+		var raw string
+		if e = rows.Scan(&x.Account, &x.Table, &x.PartitionKey, &x.RowKey, &x.ETag, &x.Timestamp, &raw); e != nil {
+			return nil, e
+		}
+		if json.Unmarshal([]byte(raw), &x.Properties) != nil {
+			x.Properties = map[string]json.RawMessage{}
+		}
+		out = append(out, x)
+	}
+	return out, rows.Err()
+}
+
 func (s *Store) CreateAzureTable(ctx context.Context, t AzureTable) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

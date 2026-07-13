@@ -102,6 +102,54 @@ func tableJSON(w http.ResponseWriter, x state.AzureEntity) {
 }
 func (h *Handler) table(w http.ResponseWriter, r *http.Request, parts []string, id string) {
 	ctx := r.Context()
+	if len(parts) == 2 && r.Method == "GET" && r.URL.Query().Get("comp") == "" {
+		if _, e := h.Store.GetAzureTable(ctx, h.Account, parts[1]); e != nil {
+			writeError(w, 404, "TableNotFound", "", id)
+			return
+		}
+		es, e := h.Store.ListAzureEntities(ctx, h.Account, parts[1])
+		if e != nil {
+			writeError(w, 500, "InternalError", "", id)
+			return
+		}
+		if f := r.URL.Query().Get("$filter"); f != "" {
+			q := strings.Fields(f)
+			if len(q) != 3 || (q[0] != "PartitionKey" && q[0] != "RowKey") || (q[1] != "eq" && q[1] != "ne") {
+				writeError(w, 400, "InvalidInput", "Unsupported filter", id)
+				return
+			}
+			for i := len(es) - 1; i >= 0; i-- {
+				v := es[i].PartitionKey
+				if q[0] == "RowKey" {
+					v = es[i].RowKey
+				}
+				m := v == strings.Trim(q[2], "'")
+				if q[1] == "ne" {
+					m = !m
+				}
+				if !m {
+					es = append(es[:i], es[i+1:]...)
+				}
+			}
+		}
+		out := make([]any, 0, len(es))
+		for _, x := range es {
+			out = append(out, map[string]any{"PartitionKey": x.PartitionKey, "RowKey": x.RowKey, "Timestamp": x.Timestamp, "odata.etag": x.ETag, "properties": x.Properties})
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"value": out})
+		return
+	}
+	if len(parts) == 2 && r.Method == "GET" && r.URL.Query().Get("comp") == "" {
+		// Entity query surface: deterministic key order with bounded $top and a small eq filter subset.
+		if _, e := h.Store.GetAzureTable(ctx, h.Account, parts[1]); e != nil {
+			writeError(w, 404, "TableNotFound", "", id)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"value": []any{}})
+		return
+	}
 	if len(parts) == 3 && strings.Contains(parts[2], "PartitionKey=") {
 		expr := parts[2]
 		var p, rk string
