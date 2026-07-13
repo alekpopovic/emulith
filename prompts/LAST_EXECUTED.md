@@ -34,3 +34,7 @@
 | `29-v0.2-hardening-and-release.md` | 2026-07-13 | commit containing this entry | Added v0.2 upgrade/migration documentation and ran release acceptance hardening gates. |
 | `30-azure-provider-gateway-and-endpoints.md` | 2026-07-13 | commit containing this entry | Added experimental Azure provider error/request foundation and local connection endpoint support. |
 | `31-azure-storage-account-and-auth-contract.md` | 2026-07-13 | commit containing this entry | Added deterministic development account contract and `azure connection-string` CLI output. |
+| `32-blob-container-lifecycle.md` | 2026-07-13 | commit containing this entry | Added durable Azure container lifecycle, metadata, validation, listing, and provider-shaped errors. |
+| `33-block-blob-core-crud.md` | 2026-07-13 | commit containing this entry | Added filesystem-backed Block Blob put/get/head/delete and persisted blob metadata. |
+| `34-block-blob-staging-and-sdk-upload.md` | 2026-07-13 | commit containing this entry | Added bounded block ID canonicalization, block-list resolution, streaming assembly helpers, and tests. |
+| `35-blob-listing-ranges-and-conditions.md` | 2026-07-13 | commit containing this entry | Added reusable range parsing, ETag/date condition evaluation, and hashing helpers with bounded tests. |
