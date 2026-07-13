@@ -1,24 +1,17 @@
-# AWS POC compatibility
+# AWS compatibility
 
-Emulith is development/CI-only and does not claim full AWS parity.
+Generated from `compatibility/aws.yaml`. Statuses: supported (default SDK test passes), partial (documented subset), experimental (may change), unsupported (not implemented).
 
-| Service | Operation | Status | Notes |
-| --- | --- | --- | --- |
-| STS | GetCallerIdentity | Supported | Deterministic local identity; no IAM enforcement. |
-| S3 | CreateBucket | Supported | Path-style only. |
-| S3 | ListBuckets | Supported | Lexical bucket ordering. |
-| S3 | PutObject | Supported | Single-part body and MD5 ETag. |
-| S3 | GetObject | Supported | Full object only; ranges unsupported. |
-| S3 | HeadObject | Supported | Stored metadata subset. |
-| S3 | DeleteObject | Supported | Idempotent for missing keys. |
-| S3 | ListObjectsV2 | Partial | Prefix and max-keys up to 1000; no continuation tokens. |
-| SQS | CreateQueue | Supported | Standard queues only. |
-| SQS | GetQueueUrl | Supported | Local account `000000000000`. |
-| SQS | ListQueues | Supported | Prefix and lexical ordering. |
-| SQS | SendMessage | Supported | Text body up to 256 KiB. |
-| SQS | ReceiveMessage | Partial | Short polling only, 1–10 messages. |
-| SQS | DeleteMessage | Supported | Current receipt handle required. |
-| SQS | PurgeQueue | Supported | Repeated purge allowed locally. |
-| SQS | GetQueueAttributes | Partial | Documented POC attributes only. |
-
-SQS AWS JSON is primary and Query is a compatibility fallback. Metadata persists in SQLite and S3 bodies on the filesystem. Multipart, ACL/policy, versioning, FIFO, batch, redrive, long polling, IAM, and production mode are unsupported.
+| Service | Operation | Status | Protocol | Test ID | Notes | Known deviations | Since |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| s3 | CreateBucket | supported | REST-XML | aws.s3.lifecycle.basic | Path-style local bucket lifecycle. | No virtual-host addressing. | v0.1.0-poc |
+| s3 | DeleteObject | partial | REST-XML |  | Idempotent local deletion. | No version markers. | v0.1.0-poc |
+| s3 | GetObject | partial | REST-XML |  | Basic full-body reads. | No ranges or versioning. | v0.1.0-poc |
+| s3 | HeadObject | partial | REST-XML |  | Basic object metadata. | Limited metadata. | v0.1.0-poc |
+| s3 | ListBuckets | partial | REST-XML |  | Basic listing is covered by the S3 lifecycle test. | Owner details are local placeholders. | v0.1.0-poc |
+| s3 | ListObjectsV2 | partial | REST-XML |  | Prefix listing. | Limited pagination semantics. | v0.1.0-poc |
+| s3 | PutObject | partial | REST-XML |  | Basic streamed object writes. | No multipart or checksums. | v0.1.0-poc |
+| sqs | CreateQueue | supported | AWS-JSON-1.0 | aws.sqs.lifecycle.basic | Standard queue lifecycle and messages. | FIFO unsupported. | v0.1.0-poc |
+| sqs | ReceiveMessage | partial | AWS-JSON-1.0 |  | Visibility-based receive. | No long polling. | v0.1.0-poc |
+| sqs | SendMessage | partial | AWS-JSON-1.0 |  | Standard message send. | Attributes are limited. | v0.1.0-poc |
+| sts | GetCallerIdentity | supported | Query | aws.sts.GetCallerIdentity.basic | Deterministic local identity. | No IAM evaluation. | v0.1.0-poc |

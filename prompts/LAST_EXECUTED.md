@@ -20,3 +20,4 @@
 | `15-release-automation-and-artifacts.md` | 2026-07-13 | commit containing this entry | Added six-platform snapshot archives, checksums, SPDX SBOM, OCI metadata, and read-only release validation. |
 | `16-state-versioning-export-import.md` | 2026-07-13 | commit containing this entry | Added versioned, checksummed online state export/import with archive safety limits and CLI commands. |
 | `17-service-registry-and-provider-boundaries.md` | 2026-07-13 | commit containing this entry | Added deterministic service registry, AWS composition root, aggregated health, and reset lifecycle hooks. |
+| `18-compatibility-matrix-automation.md` | 2026-07-13 | commit containing this entry | Added a validated AWS catalog, stable SDK test IDs, deterministic reports, and CI freshness enforcement. |

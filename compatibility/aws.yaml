@@ -1,0 +1,12 @@
+entries:
+  - {provider: aws, service: s3, operation: CreateBucket, status: supported, protocol: REST-XML, test_id: aws.s3.lifecycle.basic, notes: Path-style local bucket lifecycle., known_deviations: [No virtual-host addressing.], since: v0.1.0-poc}
+  - {provider: aws, service: s3, operation: ListBuckets, status: partial, protocol: REST-XML, test_id: "", notes: Basic listing is covered by the S3 lifecycle test., known_deviations: [Owner details are local placeholders.], since: v0.1.0-poc}
+  - {provider: aws, service: s3, operation: PutObject, status: partial, protocol: REST-XML, test_id: "", notes: Basic streamed object writes., known_deviations: [No multipart or checksums.], since: v0.1.0-poc}
+  - {provider: aws, service: s3, operation: GetObject, status: partial, protocol: REST-XML, test_id: "", notes: Basic full-body reads., known_deviations: [No ranges or versioning.], since: v0.1.0-poc}
+  - {provider: aws, service: s3, operation: HeadObject, status: partial, protocol: REST-XML, test_id: "", notes: Basic object metadata., known_deviations: [Limited metadata.], since: v0.1.0-poc}
+  - {provider: aws, service: s3, operation: ListObjectsV2, status: partial, protocol: REST-XML, test_id: "", notes: Prefix listing., known_deviations: [Limited pagination semantics.], since: v0.1.0-poc}
+  - {provider: aws, service: s3, operation: DeleteObject, status: partial, protocol: REST-XML, test_id: "", notes: Idempotent local deletion., known_deviations: [No version markers.], since: v0.1.0-poc}
+  - {provider: aws, service: sqs, operation: CreateQueue, status: supported, protocol: AWS-JSON-1.0, test_id: aws.sqs.lifecycle.basic, notes: Standard queue lifecycle and messages., known_deviations: [FIFO unsupported.], since: v0.1.0-poc}
+  - {provider: aws, service: sqs, operation: ReceiveMessage, status: partial, protocol: AWS-JSON-1.0, test_id: "", notes: Visibility-based receive., known_deviations: [No long polling.], since: v0.1.0-poc}
+  - {provider: aws, service: sqs, operation: SendMessage, status: partial, protocol: AWS-JSON-1.0, test_id: "", notes: Standard message send., known_deviations: [Attributes are limited.], since: v0.1.0-poc}
+  - {provider: aws, service: sts, operation: GetCallerIdentity, status: supported, protocol: Query, test_id: aws.sts.GetCallerIdentity.basic, notes: Deterministic local identity., known_deviations: [No IAM evaluation.], since: v0.1.0-poc}

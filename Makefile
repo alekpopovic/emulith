@@ -1,4 +1,4 @@
-.PHONY: build test run clean docker-build docker-run compatibility demo release-snapshot release-check
+.PHONY: build test run clean docker-build docker-run compatibility compatibility-report compatibility-check demo release-snapshot release-check
 
 IMAGE ?= emulith/emulith
 TAG ?= dev
@@ -15,7 +15,14 @@ test:
 	go test ./...
 
 compatibility:
-	AWS_EC2_METADATA_DISABLED=true go test ./test/compatibility/aws/...
+	mkdir -p build/compatibility
+	AWS_EC2_METADATA_DISABLED=true EMULITH_COMPAT_RESULTS=$(CURDIR)/build/compatibility/results.json go test -count=1 ./test/compatibility/aws/...
+
+compatibility-report: compatibility
+	go run ./cmd/compatibility-report
+
+compatibility-check: compatibility
+	go run ./cmd/compatibility-report -check
 
 run:
 	go run ./cmd/emulith serve
