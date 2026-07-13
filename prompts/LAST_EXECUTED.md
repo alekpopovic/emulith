@@ -9,3 +9,4 @@
 | `04-sts-get-caller-identity.md` | 2026-07-13 | commit containing this entry | Implemented deterministic STS GetCallerIdentity with handler and real AWS SDK v2 compatibility tests. |
 | `05-s3-poc-subset.md` | 2026-07-13 | commit containing this entry | Implemented the path-style S3 POC subset with streamed filesystem bodies and SDK compatibility coverage. |
 | `06-sqs-poc-subset.md` | 2026-07-13 | commit containing this entry | Implemented the standard-queue SQS JSON/Query subset with transactional visibility and SDK tests. |
+| `07-admin-reset-and-cli.md` | 2026-07-13 | commit containing this entry | Added isolated destructive reset API and tested reset CLI client. |

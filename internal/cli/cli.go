@@ -2,12 +2,16 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -22,11 +26,52 @@ import (
 )
 
 func NewCommand(out, errOut io.Writer, version, commit, built string) *cobra.Command {
+	return NewCommandWithClient(out, errOut, version, commit, built, &http.Client{Timeout: 15 * time.Second})
+}
+
+func NewCommandWithClient(out, errOut io.Writer, version, commit, built string, client *http.Client) *cobra.Command {
 	root := &cobra.Command{Use: "emulith", SilenceUsage: true, SilenceErrors: true}
 	root.SetOut(out)
 	root.SetErr(errOut)
-	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version))
+	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newResetCommand(out, client))
 	return root
+}
+
+func newResetCommand(out io.Writer, client *http.Client) *cobra.Command {
+	endpoint := os.Getenv("EMULITH_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "http://localhost:4566"
+	}
+	cmd := &cobra.Command{Use: "reset", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
+		base, err := url.Parse(endpoint)
+		if err != nil || base.Scheme == "" || base.Host == "" {
+			return fmt.Errorf("invalid endpoint %q", endpoint)
+		}
+		base.Path = strings.TrimRight(base.Path, "/") + "/_emulith/reset"
+		request, err := http.NewRequestWithContext(cmd.Context(), http.MethodPost, base.String(), nil)
+		if err != nil {
+			return err
+		}
+		response, err := client.Do(request)
+		if err != nil {
+			return fmt.Errorf("reset request failed: %w", err)
+		}
+		defer response.Body.Close()
+		var result struct {
+			Status string `json:"status"`
+			Reset  bool   `json:"reset"`
+		}
+		if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&result); err != nil {
+			return fmt.Errorf("invalid reset response: %w", err)
+		}
+		if response.StatusCode < 200 || response.StatusCode >= 300 || result.Status != "ok" || !result.Reset {
+			return fmt.Errorf("reset failed with HTTP %d", response.StatusCode)
+		}
+		_, err = fmt.Fprintln(out, "Emulith state reset successfully.")
+		return err
+	}}
+	cmd.Flags().StringVar(&endpoint, "endpoint", endpoint, "Emulith base endpoint")
+	return cmd
 }
 
 func Execute(out, errOut io.Writer, version, commit, built string) error {
@@ -53,7 +98,7 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 		gateway.SetSTS(sts.New())
 		gateway.SetS3(s3.New(store))
 		gateway.SetSQS(sqs.New(store))
-		srv := server.New(cfg.Addr, version, gateway)
+		srv := server.NewWithState(cfg.Addr, version, store, logger, gateway)
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 		go func() {

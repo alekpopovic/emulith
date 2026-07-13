@@ -28,3 +28,12 @@ Configuration can be supplied with `--addr`/`EMULITH_ADDR` and `--data-dir`/`EMU
 | SQS FIFO, redrive, attributes, batch, delay, long polling, permissions/tags | Unsupported |
 
 Emulith does not claim full AWS parity.
+
+## Reset local state
+
+The unauthenticated reset endpoint is intended only for trusted local development networks and destructively removes all Emulith-managed state:
+
+```bash
+emulith reset
+emulith reset --endpoint http://localhost:4566
+```
