@@ -64,6 +64,10 @@ func (h *Handler) ServeAWS(w http.ResponseWriter, req *awsprovider.Request, id s
 		h.deleteItem(w, req)
 	case "UpdateItem":
 		h.updateItem(w, req)
+	case "Query":
+		h.query(w, req)
+	case "Scan":
+		h.scan(w, req)
 	default:
 		h.err(w, 400, "UnknownOperationException", "Operation "+req.Operation+" is not implemented")
 	}

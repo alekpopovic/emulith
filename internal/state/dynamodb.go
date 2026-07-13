@@ -13,6 +13,7 @@ type DynamoTable struct {
 	Name, TableID, ARN, Status, BillingMode, PartitionKey, PartitionType, SortKey, SortType string
 	CreatedAt                                                                               time.Time
 }
+type DynamoItem struct{ PrimaryKey, PartitionKey, SortKey, Payload []byte }
 
 var ErrDynamoExists = errors.New("DynamoDB table exists")
 var ErrDynamoNotFound = errors.New("DynamoDB table not found")
@@ -187,4 +188,28 @@ func nullBytes(b []byte) any {
 		return nil
 	}
 	return b
+}
+func (s *Store) ListAllDynamoItems(ctx context.Context, table string, maximum int) ([]DynamoItem, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	rows, e := s.db.QueryContext(ctx, `SELECT primary_key,partition_key,COALESCE(sort_key,X''),payload FROM dynamodb_items WHERE table_name=? ORDER BY primary_key LIMIT ?`, table, maximum+1)
+	if e != nil {
+		return nil, e
+	}
+	defer rows.Close()
+	var out []DynamoItem
+	for rows.Next() {
+		var x DynamoItem
+		if e = rows.Scan(&x.PrimaryKey, &x.PartitionKey, &x.SortKey, &x.Payload); e != nil {
+			return nil, e
+		}
+		out = append(out, x)
+	}
+	if e = rows.Err(); e != nil {
+		return nil, e
+	}
+	if len(out) > maximum {
+		return nil, errors.New("DynamoDB local evaluation limit exceeded")
+	}
+	return out, nil
 }
