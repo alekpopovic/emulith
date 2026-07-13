@@ -5,9 +5,13 @@ Generated from `compatibility/aws.yaml`. Statuses: supported (default SDK test p
 | Service | Operation | Status | Protocol | Test ID | Notes | Known deviations | Since |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | dynamodb | CreateTable | supported | AWS-JSON-1.0 | aws.dynamodb.table-lifecycle.basic | PAY_PER_REQUEST tables with scalar HASH and optional RANGE keys. | Tables become ACTIVE immediately; secondary indexes and advanced options are rejected. | v0.2.0-dev |
+| dynamodb | DeleteItem | partial | AWS-JSON-1.0 |  | Atomic idempotent deletion with NONE and ALL_OLD. | Conditions are not yet supported. | v0.2.0-dev |
 | dynamodb | DeleteTable | partial | AWS-JSON-1.0 |  | Immediate atomic local deletion. | No asynchronous deletion period. | v0.2.0-dev |
 | dynamodb | DescribeTable | partial | AWS-JSON-1.0 |  | Returns persisted local table metadata. | Capacity and index metrics are omitted. | v0.2.0-dev |
+| dynamodb | GetItem | partial | AWS-JSON-1.0 |  | Strongly consistent full-item reads. | Projection is not yet supported. | v0.2.0-dev |
 | dynamodb | ListTables | partial | AWS-JSON-1.0 |  | Lexical pagination with Limit and ExclusiveStartTableName. | Local tables only. | v0.2.0-dev |
+| dynamodb | PutItem | supported | AWS-JSON-1.0 | aws.dynamodb.item-crud.basic | Atomic validated item replacement with NONE and ALL_OLD. | Conditions and legacy parameters are rejected. | v0.2.0-dev |
+| dynamodb | UpdateItem | partial | AWS-JSON-1.0 |  | Structured SET and REMOVE subset with expression name/value aliases. | No arithmetic; functions; ADD; DELETE; or conditions. | v0.2.0-dev |
 | s3 | CreateBucket | supported | REST-XML | aws.s3.lifecycle.basic | Path-style local bucket lifecycle. | No virtual-host addressing. | v0.1.0-poc |
 | s3 | DeleteObject | partial | REST-XML |  | Idempotent local deletion. | No version markers. | v0.1.0-poc |
 | s3 | GetObject | partial | REST-XML |  | Basic full-body reads. | No ranges or versioning. | v0.1.0-poc |

@@ -1,6 +1,7 @@
 package state
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
@@ -90,4 +91,84 @@ func (s *Store) DeleteDynamoTable(ctx context.Context, name string) (DynamoTable
 		return t, e
 	}
 	return t, tx.Commit()
+}
+
+func (s *Store) GetDynamoItem(ctx context.Context, table string, key []byte) ([]byte, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var b []byte
+	e := s.db.QueryRowContext(ctx, `SELECT payload FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key).Scan(&b)
+	if errors.Is(e, sql.ErrNoRows) {
+		return nil, nil
+	}
+	return b, e
+}
+func (s *Store) PutDynamoItem(ctx context.Context, table string, key, partition, sortKey, payload []byte) ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	tx, e := s.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, e
+	}
+	defer tx.Rollback()
+	var old []byte
+	e = tx.QueryRowContext(ctx, `SELECT payload FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key).Scan(&old)
+	if e != nil && !errors.Is(e, sql.ErrNoRows) {
+		return nil, e
+	}
+	_, e = tx.ExecContext(ctx, `INSERT INTO dynamodb_items(table_name,primary_key,partition_key,sort_key,payload,item_size,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(table_name,primary_key) DO UPDATE SET payload=excluded.payload,item_size=excluded.item_size,updated_at=excluded.updated_at`, table, key, partition, nullBytes(sortKey), payload, len(payload), time.Now().UTC())
+	if e != nil {
+		return nil, e
+	}
+	return old, tx.Commit()
+}
+func (s *Store) DeleteDynamoItem(ctx context.Context, table string, key []byte) ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	tx, e := s.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, e
+	}
+	defer tx.Rollback()
+	var old []byte
+	e = tx.QueryRowContext(ctx, `SELECT payload FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key).Scan(&old)
+	if errors.Is(e, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if e != nil {
+		return nil, e
+	}
+	if _, e = tx.ExecContext(ctx, `DELETE FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key); e != nil {
+		return nil, e
+	}
+	return old, tx.Commit()
+}
+func (s *Store) UpdateDynamoItem(ctx context.Context, table string, key, partition, sortKey []byte, mutate func([]byte) ([]byte, error)) ([]byte, []byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	tx, e := s.db.BeginTx(ctx, nil)
+	if e != nil {
+		return nil, nil, e
+	}
+	defer tx.Rollback()
+	var old []byte
+	e = tx.QueryRowContext(ctx, `SELECT payload FROM dynamodb_items WHERE table_name=? AND primary_key=?`, table, key).Scan(&old)
+	if e != nil && !errors.Is(e, sql.ErrNoRows) {
+		return nil, nil, e
+	}
+	next, e := mutate(bytes.Clone(old))
+	if e != nil {
+		return nil, nil, e
+	}
+	_, e = tx.ExecContext(ctx, `INSERT INTO dynamodb_items(table_name,primary_key,partition_key,sort_key,payload,item_size,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(table_name,primary_key) DO UPDATE SET payload=excluded.payload,item_size=excluded.item_size,updated_at=excluded.updated_at`, table, key, partition, nullBytes(sortKey), next, len(next), time.Now().UTC())
+	if e != nil {
+		return nil, nil, e
+	}
+	return old, next, tx.Commit()
+}
+func nullBytes(b []byte) any {
+	if len(b) == 0 {
+		return nil
+	}
+	return b
 }

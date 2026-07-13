@@ -23,3 +23,4 @@
 | `18-compatibility-matrix-automation.md` | 2026-07-13 | commit containing this entry | Added a validated AWS catalog, stable SDK test IDs, deterministic reports, and CI freshness enforcement. |
 | `19-dynamodb-protocol-and-data-model.md` | 2026-07-13 | commit containing this entry | Added DynamoDB JSON routing, bounded AttributeValue/key models, persistence schema, and shaped unsupported responses. |
 | `20-dynamodb-table-lifecycle.md` | 2026-07-13 | commit containing this entry | Implemented validated DynamoDB table lifecycle, lexical pagination, atomic persistence, and real SDK compatibility coverage. |
+| `21-dynamodb-item-crud.md` | 2026-07-13 | commit containing this entry | Implemented atomic DynamoDB item CRUD, precise nested value round trips, and a structured SET/REMOVE update subset. |
