@@ -28,3 +28,4 @@
 | `23-dynamodb-query-scan-pagination.md` | 2026-07-13 | commit containing this entry | Added primary-index Query and deterministic Scan with exact ordering, filters, projections, counts, and key-map pagination. |
 | `24-dynamodb-batch-operations.md` | 2026-07-13 | commit containing this entry | Added bounded multi-table BatchGet and transactionally atomic BatchWrite with duplicate validation and SDK coverage. |
 | `25-dynamodb-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Formalized the loopback-only DynamoDB harness with restart, reset, persistence, concurrent conditions, and pinned SDK reporting. |
+| `26-sns-core-topics-and-publish.md` | 2026-07-13 | commit containing this entry | Added SNS Query protocol routing, durable topic lifecycle, pagination, attributes, and plain-message Publish with SDK coverage. |
