@@ -4,6 +4,7 @@ Generated from `compatibility/aws.yaml`. Statuses: supported (default SDK test p
 
 | Service | Operation | Status | Protocol | Test ID | Notes | Known deviations | Since |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| dynamodb | CreateTable | experimental | AWS-JSON-1.0 |  | Protocol is recognized but operations are not implemented yet. | Returns UnknownOperationException. | v0.2.0-dev |
 | s3 | CreateBucket | supported | REST-XML | aws.s3.lifecycle.basic | Path-style local bucket lifecycle. | No virtual-host addressing. | v0.1.0-poc |
 | s3 | DeleteObject | partial | REST-XML |  | Idempotent local deletion. | No version markers. | v0.1.0-poc |
 | s3 | GetObject | partial | REST-XML |  | Basic full-body reads. | No ranges or versioning. | v0.1.0-poc |

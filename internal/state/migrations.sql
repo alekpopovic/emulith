@@ -16,3 +16,22 @@ CREATE TABLE IF NOT EXISTS sqs_messages (
 );
 CREATE INDEX IF NOT EXISTS idx_sqs_messages_visible ON sqs_messages(queue_name, visible_at, created_at);
 INSERT OR IGNORE INTO schema_version(version) VALUES (1);
+
+-- emulith migration 2: DynamoDB durable JSON payloads and canonical binary keys
+CREATE TABLE IF NOT EXISTS dynamodb_tables (
+  name TEXT PRIMARY KEY, table_id TEXT NOT NULL UNIQUE, arn TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL, created_at TIMESTAMP NOT NULL, billing_mode TEXT NOT NULL,
+  partition_key TEXT NOT NULL, partition_type TEXT NOT NULL,
+  sort_key TEXT, sort_type TEXT
+);
+CREATE TABLE IF NOT EXISTS dynamodb_attributes (
+  table_name TEXT NOT NULL, name TEXT NOT NULL, attribute_type TEXT NOT NULL,
+  PRIMARY KEY(table_name, name), FOREIGN KEY(table_name) REFERENCES dynamodb_tables(name) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS dynamodb_items (
+  table_name TEXT NOT NULL, primary_key BLOB NOT NULL, partition_key BLOB NOT NULL,
+  sort_key BLOB, payload BLOB NOT NULL, item_size INTEGER NOT NULL, updated_at TIMESTAMP NOT NULL,
+  PRIMARY KEY(table_name, primary_key), FOREIGN KEY(table_name) REFERENCES dynamodb_tables(name) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_dynamodb_items_query ON dynamodb_items(table_name, partition_key, sort_key);
+INSERT OR IGNORE INTO schema_version(version) VALUES (2);

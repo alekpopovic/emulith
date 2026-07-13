@@ -23,10 +23,11 @@ const maxProtocolBody = 1 << 20
 type Protocol string
 
 const (
-	ProtocolSQSJSON Protocol = "sqs-json"
-	ProtocolQuery   Protocol = "query"
-	ProtocolS3      Protocol = "s3"
-	ProtocolUnknown Protocol = "unknown"
+	ProtocolSQSJSON    Protocol = "sqs-json"
+	ProtocolDynamoJSON Protocol = "dynamodb-json"
+	ProtocolQuery      Protocol = "query"
+	ProtocolS3         Protocol = "s3"
+	ProtocolUnknown    Protocol = "unknown"
 )
 
 type Request struct {
@@ -49,12 +50,13 @@ type Gateway struct {
 
 func NewGateway(store *state.Store, logger *slog.Logger) *Gateway {
 	p := placeholder{}
-	return &Gateway{store: store, logger: logger, handlers: map[string]Handler{"sts": p, "s3": p, "sqs": p}}
+	return &Gateway{store: store, logger: logger, handlers: map[string]Handler{"sts": p, "s3": p, "sqs": p, "dynamodb": p}}
 }
 
-func (g *Gateway) SetSTS(handler Handler) { g.handlers["sts"] = handler }
-func (g *Gateway) SetS3(handler Handler)  { g.handlers["s3"] = handler }
-func (g *Gateway) SetSQS(handler Handler) { g.handlers["sqs"] = handler }
+func (g *Gateway) SetSTS(handler Handler)      { g.handlers["sts"] = handler }
+func (g *Gateway) SetS3(handler Handler)       { g.handlers["s3"] = handler }
+func (g *Gateway) SetSQS(handler Handler)      { g.handlers["sqs"] = handler }
+func (g *Gateway) SetDynamoDB(handler Handler) { g.handlers["dynamodb"] = handler }
 func (g *Gateway) RegisterHandler(name string, handler Handler) error {
 	if name == "" || handler == nil {
 		return fmt.Errorf("invalid AWS service registration")
@@ -106,6 +108,21 @@ func classify(r *http.Request) (*Request, error) {
 	mediaType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if target := r.Header.Get("X-Amz-Target"); r.Method == http.MethodPost && strings.EqualFold(mediaType, "application/x-amz-json-1.0") && strings.HasPrefix(strings.ToLower(target), "amazonsqs.") {
 		req.Protocol, req.Service, req.Operation = ProtocolSQSJSON, "sqs", target[strings.LastIndex(target, ".")+1:]
+		body, err := io.ReadAll(io.LimitReader(r.Body, maxProtocolBody+1))
+		if err != nil {
+			return req, err
+		}
+		if len(body) > maxProtocolBody {
+			return req, fmt.Errorf("JSON body exceeds %d bytes", maxProtocolBody)
+		}
+		if len(bytes.TrimSpace(body)) > 0 && !json.Valid(body) {
+			return req, fmt.Errorf("malformed JSON body")
+		}
+		r.Body = io.NopCloser(bytes.NewReader(body))
+		return req, nil
+	}
+	if target := r.Header.Get("X-Amz-Target"); r.Method == http.MethodPost && strings.EqualFold(mediaType, "application/x-amz-json-1.0") && strings.HasPrefix(strings.ToLower(target), "dynamodb_20120810.") {
+		req.Protocol, req.Service, req.Operation = ProtocolDynamoJSON, "dynamodb", target[strings.LastIndex(target, ".")+1:]
 		body, err := io.ReadAll(io.LimitReader(r.Body, maxProtocolBody+1))
 		if err != nil {
 			return req, err
@@ -205,7 +222,7 @@ func (placeholder) ServeAWS(w http.ResponseWriter, req *Request, id string) {
 	switch req.Protocol {
 	case ProtocolS3:
 		writeS3Error(w, id, http.StatusNotImplemented, "NotImplemented", "The requested operation is not implemented")
-	case ProtocolSQSJSON:
+	case ProtocolSQSJSON, ProtocolDynamoJSON:
 		writeJSONError(w, id, http.StatusBadRequest, "InvalidAction", "The requested operation is not implemented")
 	default:
 		writeQueryError(w, id, http.StatusBadRequest, "InvalidAction", "The requested operation is not implemented")

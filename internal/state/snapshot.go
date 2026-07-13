@@ -205,7 +205,7 @@ func (s *Store) Import(ctx context.Context, in io.Reader, replace bool) error {
 		return err
 	}
 	var existing int
-	if err = s.db.QueryRowContext(ctx, `SELECT (SELECT count(*) FROM s3_buckets)+(SELECT count(*) FROM sqs_queues)`).Scan(&existing); err != nil {
+	if err = s.db.QueryRowContext(ctx, `SELECT (SELECT count(*) FROM s3_buckets)+(SELECT count(*) FROM sqs_queues)+(SELECT count(*) FROM dynamodb_tables)`).Scan(&existing); err != nil {
 		return err
 	}
 	if existing > 0 && !replace {
@@ -219,7 +219,7 @@ func (s *Store) Import(ctx context.Context, in io.Reader, replace bool) error {
 	var schema int
 	err = candidate.QueryRowContext(ctx, `SELECT max(version) FROM schema_version`).Scan(&schema)
 	candidate.Close()
-	if err != nil || schema != 1 {
+	if err != nil || schema != 2 {
 		return errors.New("import database schema is unsupported")
 	}
 	backup := s.objectsRoot + ".import-backup"
@@ -295,12 +295,12 @@ func restoreDatabase(ctx context.Context, db *sql.DB, path string) error {
 		return e
 	}
 	defer tx.Rollback()
-	for _, table := range []string{"sqs_messages", "sqs_queues", "s3_objects", "s3_buckets"} {
+	for _, table := range []string{"dynamodb_items", "dynamodb_attributes", "dynamodb_tables", "sqs_messages", "sqs_queues", "s3_objects", "s3_buckets"} {
 		if _, e = tx.ExecContext(ctx, "DELETE FROM "+table); e != nil {
 			return e
 		}
 	}
-	for _, table := range []string{"s3_buckets", "s3_objects", "sqs_queues", "sqs_messages"} {
+	for _, table := range []string{"s3_buckets", "s3_objects", "sqs_queues", "sqs_messages", "dynamodb_tables", "dynamodb_attributes", "dynamodb_items"} {
 		if _, e = tx.ExecContext(ctx, "INSERT INTO "+table+" SELECT * FROM imported."+table); e != nil {
 			return e
 		}

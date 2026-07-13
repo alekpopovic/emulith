@@ -21,6 +21,7 @@ import (
 	"github.com/alekpopovic/emulith/internal/service"
 	"github.com/alekpopovic/emulith/internal/state"
 	awsprovider "github.com/alekpopovic/emulith/providers/aws"
+	"github.com/alekpopovic/emulith/providers/aws/dynamodb"
 	"github.com/alekpopovic/emulith/providers/aws/s3"
 	"github.com/alekpopovic/emulith/providers/aws/sqs"
 	"github.com/alekpopovic/emulith/providers/aws/sts"
@@ -223,6 +224,9 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 			return err
 		}
 		if err := provider.Register("sqs", sqs.New(store)); err != nil {
+			return err
+		}
+		if err := provider.Register("dynamodb", dynamodb.New()); err != nil {
 			return err
 		}
 		srv := server.NewWithState(cfg.Addr, version, store, logger, provider.Gateway(), registry)

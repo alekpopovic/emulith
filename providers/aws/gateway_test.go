@@ -94,3 +94,13 @@ func TestAdminWinsAndOversizeRejected(t *testing.T) {
 		t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
 	}
 }
+
+func TestClassifyDynamoDBJSON(t *testing.T) {
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"TableName":"x"}`))
+	r.Header.Set("content-type", "Application/X-Amz-Json-1.0; charset=utf-8")
+	r.Header.Set("x-amz-target", "DynamoDB_20120810.CreateTable")
+	got, err := classify(r)
+	if err != nil || got.Service != "dynamodb" || got.Operation != "CreateTable" || got.Protocol != ProtocolDynamoJSON {
+		t.Fatalf("got=%#v err=%v", got, err)
+	}
+}

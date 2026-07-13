@@ -1,4 +1,5 @@
 entries:
+  - {provider: aws, service: dynamodb, operation: CreateTable, status: experimental, protocol: AWS-JSON-1.0, test_id: "", notes: Protocol is recognized but operations are not implemented yet., known_deviations: [Returns UnknownOperationException.], since: v0.2.0-dev}
   - {provider: aws, service: s3, operation: CreateBucket, status: supported, protocol: REST-XML, test_id: aws.s3.lifecycle.basic, notes: Path-style local bucket lifecycle., known_deviations: [No virtual-host addressing.], since: v0.1.0-poc}
   - {provider: aws, service: s3, operation: ListBuckets, status: partial, protocol: REST-XML, test_id: "", notes: Basic listing is covered by the S3 lifecycle test., known_deviations: [Owner details are local placeholders.], since: v0.1.0-poc}
   - {provider: aws, service: s3, operation: PutObject, status: partial, protocol: REST-XML, test_id: "", notes: Basic streamed object writes., known_deviations: [No multipart or checksums.], since: v0.1.0-poc}
