@@ -1,4 +1,4 @@
-.PHONY: build test run clean docker-build docker-run
+.PHONY: build test run clean docker-build docker-run compatibility
 
 IMAGE ?= emulith/emulith
 TAG ?= dev
@@ -13,6 +13,9 @@ build:
 
 test:
 	go test ./...
+
+compatibility:
+	AWS_EC2_METADATA_DISABLED=true go test ./test/compatibility/aws/...
 
 run:
 	go run ./cmd/emulith serve

@@ -11,3 +11,4 @@
 | `06-sqs-poc-subset.md` | 2026-07-13 | commit containing this entry | Implemented the standard-queue SQS JSON/Query subset with transactional visibility and SDK tests. |
 | `07-admin-reset-and-cli.md` | 2026-07-13 | commit containing this entry | Added isolated destructive reset API and tested reset CLI client. |
 | `08-docker-and-compose.md` | 2026-07-13 | commit containing this entry | Added reproducible non-root Docker image, Make targets, and Compose example. |
+| `09-aws-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Added a reusable loopback-only full-server SDK harness and compatibility target. |
