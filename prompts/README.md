@@ -1,42 +1,42 @@
-# Emulith — Codex GPT-5.6 prompt paket 30–44
+# Emulith — Codex GPT-5.6 prompt paket 45–59
 
-Ovaj paket nastavlja prethodne Emulith pakete `00–14` i `15–29`. Njegov cilj je da AWS-first `v0.2.0` projekat proširi u prvi stvarni multi-cloud POC sa Azure Storage podrškom i pripremi `v0.3.0`.
+Ovaj paket nastavlja Emulith promptove `00–44`. Cilj je da multi-cloud `v0.3.0` projekat proširi GCP servisima i pripremi prvi AWS + Azure + GCP `v0.4.0`.
 
-Svaki prompt je zaseban Markdown fajl i predviđen je kao poseban Codex task u istom repozitorijumu. Promptovi su napisani na engleskom zbog preciznijeg rada sa protokolima, SDK-ovima, testovima i acceptance kriterijumima.
+Svaki prompt je zaseban Markdown fajl i predviđen je kao poseban Codex task u istom repozitorijumu. Promptovi su napisani na engleskom zbog preciznijeg rada sa gRPC/HTTP protokolima, zvaničnim SDK klijentima, migracijama i acceptance kriterijumima.
 
 ## Redosled
 
 | Broj | Fajl | Cilj |
 |---:|---|---|
-| 30 | `30-azure-provider-gateway-and-endpoints.md` | Azure provider i zasebni Blob/Queue/Table listeneri |
-| 31 | `31-azure-storage-account-and-auth-contract.md` | Development account, SharedKey/SAS parser i connection string |
-| 32 | `32-blob-container-lifecycle.md` | Blob container lifecycle, metadata i listing |
-| 33 | `33-block-blob-core-crud.md` | Osnovni Block Blob upload/download/properties/delete |
-| 34 | `34-block-blob-staging-and-sdk-upload.md` | Put Block, Put Block List i high-level SDK upload |
-| 35 | `35-blob-listing-ranges-and-conditions.md` | Blob listing, range download i conditional requests |
-| 36 | `36-azure-queue-lifecycle.md` | Azure Queue lifecycle, metadata i listing |
-| 37 | `37-azure-queue-message-semantics.md` | Message TTL, visibility, pop receipt, update/delete/clear |
-| 38 | `38-azure-table-service-and-entity-crud.md` | Table lifecycle, typed entities, CRUD i ETag |
-| 39 | `39-azure-table-odata-query-and-pagination.md` | OData parser, filter, select, top i continuation |
-| 40 | `40-azure-table-batch-transactions.md` | Multipart entity group transactions i rollback |
-| 41 | `41-azure-sdk-compatibility-suite.md` | Formalni official Azure SDK compatibility paket |
-| 42 | `42-azure-manifest-compose-and-dev-ux.md` | Manifest resursi, CLI, Compose i Azure demo |
-| 43 | `43-azure-state-migration-export-import-and-matrix.md` | Migracije, snapshot i multi-provider compatibility report |
-| 44 | `44-v0.3-hardening-and-release.md` | Multicloud hardening i v0.3 GO/NO-GO |
+| 45 | `45-gcp-provider-grpc-and-endpoints.md` | GCP provider, gRPC osnova i Storage HTTP listener |
+| 46 | `46-gcp-project-credentials-and-emulator-env.md` | Lokalni project, resource names, permissive auth i `gcp env` |
+| 47 | `47-pubsub-topic-and-subscription-lifecycle.md` | Pub/Sub topics i pull subscriptions |
+| 48 | `48-pubsub-publish-pull-and-ack.md` | Publish, Pull, Acknowledge i ack deadline |
+| 49 | `49-pubsub-streaming-pull-redelivery-and-ordering.md` | StreamingPull, backpressure, redelivery i ordering keys |
+| 50 | `50-pubsub-sdk-compatibility-suite.md` | Formalni official-client Pub/Sub paket |
+| 51 | `51-gcs-bucket-lifecycle.md` | Cloud Storage bucket CRUD/listing/metadata |
+| 52 | `52-gcs-object-core-crud.md` | Object upload/download/attrs/patch/delete |
+| 53 | `53-gcs-resumable-and-multipart-uploads.md` | Multipart i resumable upload protokol |
+| 54 | `54-gcs-listing-ranges-generations-and-conditions.md` | Listing, ranges, generation i preconditions |
+| 55 | `55-firestore-protocol-value-model-and-persistence.md` | Firestore gRPC, Value model, paths i storage |
+| 56 | `56-firestore-document-crud-batches-and-transactions.md` | CRUD, batches, transforms i transactions |
+| 57 | `57-firestore-structured-queries-and-sdk-compatibility.md` | RunQuery i formalni Firestore SDK testovi |
+| 58 | `58-gcp-manifest-docker-state-and-compatibility-integration.md` | Manifest, Docker, migracije, snapshot i GCP demo |
+| 59 | `59-v0.4-hardening-and-release.md` | Three-cloud hardening i v0.4 GO/NO-GO |
 
 ## Način rada
 
-1. Završiti i pregledati prethodne promptove `00–29`.
-2. Promptove `30–44` izvršavati strogo redom.
-3. Svaki prompt pokrenuti kao poseban Codex task/thread.
-4. Ne pokretati dva prompta paralelno nad istim repozitorijumom.
-5. Posle svakog zadatka pregledati diff, migracije, SDK testove i compatibility status.
-6. Napraviti commit tek nakon ljudskog pregleda završenog koraka.
-7. Ne preći na sledeći prompt dok obavezne provere prethodnog nisu zelene ili precizno blokirane okruženjem.
+1. Završiti i pregledati promptove `00–44`.
+2. Izvršavati `45–59` strogo redom.
+3. Svaki prompt pokrenuti kao zaseban Codex task/thread.
+4. Ne pokretati paralelne taskove nad istim repozitorijumom.
+5. Posle svakog koraka pregledati diff, migracije, official-client testove i compatibility status.
+6. Commit praviti tek posle ljudskog pregleda.
+7. Ne prelaziti na sledeći prompt dok obavezne provere prethodnog nisu zelene ili precizno blokirane okruženjem.
 
 ## Ciljani rezultat
 
-Posle prompta 44 Emulith bi trebalo da ima testirani lokalni subset:
+Posle prompta 59 Emulith bi trebalo da ima testirani lokalni subset:
 
 ```text
 AWS:
@@ -51,12 +51,17 @@ Azure:
   Blob Storage
   Queue Storage
   Table Storage
+
+GCP:
+  Pub/Sub
+  Cloud Storage
+  Firestore
 ```
 
 Uz:
 
 ```text
-četiri lokalna listenera
+sedam lokalnih listenera
 SQLite/filesystem state
 schema migracije
 snapshot export/import
@@ -67,7 +72,7 @@ release artifacts
 SBOM/checksums
 ```
 
-To nije puna Azure ili AWS kompatibilnost, ne sprovodi stvarnu cloud autentikaciju i nije namenjeno produkciji.
+To nije puna cloud kompatibilnost, ne sprovodi stvarni IAM/auth i nije namenjeno produkciji.
 
 ## Završni acceptance gate
 
@@ -81,6 +86,8 @@ make compatibility-report
 make compatibility-check
 make demo
 make demo-azure
+make demo-gcp
+make demo-multicloud
 make docker-build
 make release-snapshot
 make release-check
