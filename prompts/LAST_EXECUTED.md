@@ -42,7 +42,7 @@
 | `37-azure-queue-message-semantics.md` | 2026-07-13 | commit containing this entry | Added durable Azure Queue messages with XML Put/Get/Peek/Update/Delete/Clear, visibility, TTL, dequeue counts, and rotating pop receipts. |
 | `38-azure-table-service-and-entity-crud.md` | 2026-07-13 | commit containing this entry | Added durable Azure Table lifecycle and basic typed JSON entity CRUD with ETags. |
 | `39-azure-table-odata-query-and-pagination.md` | 2026-07-13 | commit containing this entry | Added table routing groundwork; full bounded OData query grammar remains partial. |
-| `40-azure-table-batch-transactions.md` | 2026-07-13 | commit containing this entry | Added transactional table persistence primitives; multipart batch endpoint remains partial. |
+| `40-azure-table-batch-transactions.md` | 2026-07-13 | commit containing this entry | Added bounded multipart batch parsing with single-table/single-partition validation and safe rejection semantics; atomic operation execution remains partial. |
 | `41-azure-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Existing hermetic suite remains green; Azure SDK scenarios are documented as pending. |
 | `42-azure-manifest-compose-and-dev-ux.md` | 2026-07-13 | commit containing this entry | Extended strict manifests with Azure resource validation and added `azure env` output. |
 | `43-azure-state-migration-export-import-and-matrix.md` | 2026-07-13 | commit containing this entry | Extended schema/snapshot compatibility for Azure tables and documented migration scope. |

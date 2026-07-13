@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"github.com/alekpopovic/emulith/internal/state"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -102,6 +104,10 @@ func tableJSON(w http.ResponseWriter, x state.AzureEntity) {
 }
 func (h *Handler) table(w http.ResponseWriter, r *http.Request, parts []string, id string) {
 	ctx := r.Context()
+	if r.URL.Query().Get("comp") == "batch" {
+		h.tableBatch(w, r, id)
+		return
+	}
 	if len(parts) == 2 && r.Method == "GET" && r.URL.Query().Get("comp") == "" {
 		if _, e := h.Store.GetAzureTable(ctx, h.Account, parts[1]); e != nil {
 			writeError(w, 404, "TableNotFound", "", id)
@@ -256,6 +262,54 @@ func (h *Handler) table(w http.ResponseWriter, r *http.Request, parts []string, 
 		return
 	}
 	tableJSON(w, x)
+}
+
+func (h *Handler) tableBatch(w http.ResponseWriter, r *http.Request, id string) {
+	if r.ContentLength > 8<<20 {
+		writeError(w, 413, "InvalidInput", "batch too large", id)
+		return
+	}
+	ct := r.Header.Get("Content-Type")
+	med, params, e := mime.ParseMediaType(ct)
+	if e != nil || med != "multipart/mixed" {
+		writeError(w, 400, "InvalidInput", "multipart/mixed required", id)
+		return
+	}
+	mr := multipart.NewReader(io.LimitReader(r.Body, 8<<20), params["boundary"])
+	count := 0
+	partition := ""
+	table := ""
+	for {
+		p, e := mr.NextPart()
+		if e == io.EOF {
+			break
+		}
+		if e != nil || count >= 100 {
+			writeError(w, 400, "InvalidInput", "invalid batch", id)
+			return
+		}
+		count++
+		b, _ := io.ReadAll(io.LimitReader(p, 1<<20))
+		var x struct {
+			Table, PartitionKey, RowKey string
+			Properties                  map[string]any
+		}
+		if json.Unmarshal(b, &x) != nil || x.Table == "" || x.PartitionKey == "" || x.RowKey == "" {
+			writeError(w, 400, "InvalidInput", "invalid entity", id)
+			return
+		}
+		if table == "" {
+			table = x.Table
+			partition = x.PartitionKey
+		}
+		if x.Table != table || x.PartitionKey != partition {
+			writeError(w, 400, "InvalidInput", "single table and partition required", id)
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "multipart/mixed")
+	w.WriteHeader(202)
+	io.WriteString(w, "batch accepted")
 }
 func validQueue(n string) bool {
 	if len(n) < 3 || len(n) > 63 || n[0] == '-' || n[len(n)-1] == '-' || strings.Contains(n, "--") {
