@@ -39,3 +39,4 @@
 | `34-block-blob-staging-and-sdk-upload.md` | 2026-07-13 | commit containing this entry | Added bounded block ID canonicalization, block-list resolution, streaming assembly helpers, and tests. |
 | `35-blob-listing-ranges-and-conditions.md` | 2026-07-13 | commit containing this entry | Added reusable range parsing, ETag/date condition evaluation, and hashing helpers with bounded tests. |
 | `36-azure-queue-lifecycle.md` | 2026-07-13 | commit containing this entry | Added durable Azure Queue lifecycle, metadata, validation, pagination, and Azure-shaped errors. |
+| `37-azure-queue-message-semantics.md` | 2026-07-13 | commit containing this entry | Added durable Azure Queue messages with XML Put/Get/Peek/Update/Delete/Clear, visibility, TTL, dequeue counts, and rotating pop receipts. |

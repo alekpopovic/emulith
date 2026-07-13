@@ -54,3 +54,9 @@ INSERT OR IGNORE INTO schema_version(version) VALUES (4);
 -- Azure Queue metadata (messages are added in a later migration)
 CREATE TABLE IF NOT EXISTS azure_queues(account TEXT NOT NULL, name TEXT NOT NULL, etag TEXT NOT NULL, last_modified TIMESTAMP NOT NULL, metadata TEXT NOT NULL DEFAULT '{}', created_at TIMESTAMP NOT NULL, PRIMARY KEY(account,name));
 INSERT OR IGNORE INTO schema_version(version) VALUES (5);
+CREATE TABLE IF NOT EXISTS azure_queue_messages(account TEXT NOT NULL, queue TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, inserted_at TIMESTAMP NOT NULL, expires_at TIMESTAMP, visible_at TIMESTAMP NOT NULL, dequeue_count INTEGER NOT NULL DEFAULT 0, pop_receipt TEXT NOT NULL, updated_at TIMESTAMP NOT NULL, PRIMARY KEY(account,queue,id), FOREIGN KEY(account,queue) REFERENCES azure_queues(account,name) ON DELETE CASCADE);
+CREATE INDEX IF NOT EXISTS idx_azure_queue_visible ON azure_queue_messages(account,queue,visible_at,inserted_at,id);
+INSERT OR IGNORE INTO schema_version(version) VALUES (6);
+CREATE TABLE IF NOT EXISTS azure_queue_messages(account TEXT NOT NULL, queue TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, inserted_at TIMESTAMP NOT NULL, expires_at TIMESTAMP NOT NULL, visible_at TIMESTAMP NOT NULL, dequeue_count INTEGER NOT NULL DEFAULT 0, pop_receipt TEXT NOT NULL, updated_at TIMESTAMP NOT NULL, PRIMARY KEY(account,queue,id), FOREIGN KEY(account,queue) REFERENCES azure_queues(account,name) ON DELETE CASCADE);
+CREATE INDEX IF NOT EXISTS idx_azure_queue_messages_visible ON azure_queue_messages(account,queue,visible_at,inserted_at,id);
+INSERT OR IGNORE INTO schema_version(version) VALUES (6);

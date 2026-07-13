@@ -53,10 +53,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 501, "UnsupportedOperation", "Not configured", id)
 		return
 	}
-	if h.Service == "queue" {
-		h.queue(w, r, parts, id)
-		return
-	}
 	if strings.EqualFold(h.Service, "queue") || strings.EqualFold(h.Service, "queues") {
 		h.queue(w, r, parts, id)
 		return
@@ -85,6 +81,10 @@ func validQueue(n string) bool {
 }
 func (h *Handler) queue(w http.ResponseWriter, r *http.Request, parts []string, id string) {
 	if len(parts) > 2 {
+		if len(parts) >= 3 && parts[2] == "messages" {
+			h.queueMessages(w, r, parts, id)
+			return
+		}
 		writeError(w, 404, "InvalidUri", "Queue path is invalid.", id)
 		return
 	}
@@ -189,6 +189,109 @@ func (h *Handler) queue(w http.ResponseWriter, r *http.Request, parts []string, 
 	default:
 		writeError(w, 405, "UnsupportedOperation", "Unsupported method", id)
 	}
+}
+
+type queueMessageXML struct {
+	MessageText string `xml:"MessageText"`
+}
+
+func (h *Handler) queueMessages(w http.ResponseWriter, r *http.Request, parts []string, id string) {
+	q := parts[1]
+	ctx := r.Context()
+	if _, e := h.Store.GetAzureQueue(ctx, h.Account, q); e != nil {
+		writeError(w, 404, "QueueNotFound", "Queue not found", id)
+		return
+	}
+	if len(parts) > 3 {
+		mid, _ := url.PathUnescape(parts[3])
+		if r.Method == "DELETE" {
+			if e := h.Store.DeleteAzureMessage(ctx, h.Account, q, mid, r.URL.Query().Get("popreceipt")); e != nil {
+				writeError(w, 404, "MessageNotFound", "Message not found", id)
+				return
+			}
+			w.WriteHeader(204)
+			return
+		}
+		if r.Method == "PUT" {
+			b, _ := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+			var x queueMessageXML
+			_ = xml.Unmarshal(b, &x)
+			m, e := h.Store.UpdateAzureMessage(ctx, h.Account, q, mid, r.URL.Query().Get("popreceipt"), x.MessageText, time.Duration(parseInt(r.URL.Query().Get("visibilitytimeout"), 30))*time.Second)
+			if e != nil {
+				writeError(w, 404, "MessageNotFound", "Message not found", id)
+				return
+			}
+			writeQueueMessage(w, m, id)
+			return
+		}
+	}
+	switch r.Method {
+	case "POST":
+		b, _ := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+		var x queueMessageXML
+		if xml.Unmarshal(b, &x) != nil {
+			writeError(w, 400, "InvalidXmlDocument", "Invalid XML", id)
+			return
+		}
+		m, e := h.Store.PutAzureMessage(ctx, h.Account, q, x.MessageText, time.Duration(parseInt(r.URL.Query().Get("messagettl"), 604800))*time.Second, time.Duration(parseInt(r.URL.Query().Get("visibilitytimeout"), 0))*time.Second)
+		if e != nil {
+			writeError(w, 400, "MessageTooLarge", "Message rejected", id)
+			return
+		}
+		writeQueueMessage(w, m, id)
+	case "GET":
+		peek := r.URL.Query().Get("peekonly") == "true"
+		n := parseInt(r.URL.Query().Get("numofmessages"), 1)
+		if n < 1 || n > 32 {
+			writeError(w, 400, "OutOfRangeInput", "numofmessages out of range", id)
+			return
+		}
+		ms, e := h.Store.QueueMessages(ctx, h.Account, q, peek, n, time.Duration(parseInt(r.URL.Query().Get("visibilitytimeout"), 30))*time.Second)
+		if e != nil {
+			writeError(w, 500, "InternalError", "", id)
+			return
+		}
+		w.Header().Set("Content-Type", "application/xml")
+		type out struct {
+			XMLName  xml.Name                  `xml:"QueueMessagesList"`
+			Messages []state.AzureQueueMessage `xml:"QueueMessage"`
+		}
+		o := out{}
+		for _, m := range ms {
+			o.Messages = append(o.Messages, m)
+		}
+		xml.NewEncoder(w).Encode(o)
+	case "DELETE":
+		if e := h.Store.ClearAzureMessages(ctx, h.Account, q); e != nil {
+			writeError(w, 500, "InternalError", "", id)
+			return
+		}
+		w.WriteHeader(204)
+	default:
+		writeError(w, 405, "UnsupportedOperation", "", id)
+	}
+}
+func parseInt(s string, d int) int {
+	if s == "" {
+		return d
+	}
+	var n int
+	fmt.Sscanf(s, "%d", &n)
+	return n
+}
+func writeQueueMessage(w http.ResponseWriter, m state.AzureQueueMessage, id string) {
+	w.Header().Set("Content-Type", "application/xml")
+	type out struct {
+		XMLName    xml.Name  `xml:"QueueMessage"`
+		ID         string    `xml:"MessageId"`
+		Insertion  time.Time `xml:"InsertionTime"`
+		Expiration time.Time `xml:"ExpirationTime"`
+		Pop        string    `xml:"PopReceipt"`
+		Visible    time.Time `xml:"TimeNextVisible"`
+		Text       string    `xml:"MessageText"`
+		Count      int       `xml:"DequeueCount"`
+	}
+	xml.NewEncoder(w).Encode(out{ID: m.ID, Insertion: m.InsertedAt, Expiration: m.ExpiresAt, Pop: m.PopReceipt, Visible: m.VisibleAt, Text: m.Body, Count: m.DequeueCount})
 }
 func validContainer(n string) bool {
 	if len(n) < 3 || len(n) > 63 || n[0] == '-' || n[len(n)-1] == '-' || strings.Contains(n, "--") {
