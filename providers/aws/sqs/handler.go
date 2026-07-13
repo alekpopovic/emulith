@@ -137,6 +137,18 @@ func (h *Handler) create(w http.ResponseWriter, req *awsprovider.Request, id str
 		h.fail(w, req, id, 400, "InvalidAttributeValue", "Invalid visibility timeout")
 		return
 	}
+	if existing, getErr := h.store.GetSQSQueue(req.HTTPRequest.Context(), name); getErr == nil {
+		if existing.VisibilityTimeout != visibility {
+			h.fail(w, req, id, 400, "QueueNameExists", "A queue with different attributes already exists")
+			return
+		}
+		queueURL := publicBase(req.HTTPRequest) + existing.URLPath
+		h.respond(w, req, id, map[string]any{"QueueUrl": queueURL}, "<QueueUrl>"+escape(queueURL)+"</QueueUrl>")
+		return
+	} else if !errors.Is(getErr, state.ErrNotFound) {
+		h.internal(w, req, id)
+		return
+	}
 	path := "/" + accountID + "/" + name
 	q, err := h.store.CreateSQSQueue(req.HTTPRequest.Context(), state.SQSQueue{Name: name, URLPath: path, VisibilityTimeout: visibility, CreatedAt: h.now().UTC()})
 	if err != nil {

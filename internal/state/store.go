@@ -131,6 +131,7 @@ func (s *Store) StreamObjectBody(provider, service, namespace, key string, body 
 		_ = os.Remove(temp.Name())
 		return nil, err
 	}
+	finalPath += "-" + randomToken()
 	if err := os.Rename(temp.Name(), finalPath); err != nil {
 		_ = os.Remove(temp.Name())
 		return nil, fmt.Errorf("publish object body: %w", err)

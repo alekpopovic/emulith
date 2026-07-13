@@ -60,6 +60,14 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	started := time.Now()
 	id := requestID()
 	tracked := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			g.logger.Error("recovered AWS handler panic", "request_id", id, "method", r.Method, "path", r.URL.EscapedPath())
+			if !tracked.wroteHeader {
+				writeJSONError(tracked, id, http.StatusInternalServerError, "InternalError", "An internal error occurred")
+			}
+		}
+	}()
 	req, err := classify(r)
 	if err != nil {
 		writeJSONError(tracked, id, http.StatusRequestEntityTooLarge, "InvalidParameterValue", err.Error())
@@ -209,11 +217,16 @@ func requestID() string {
 
 type statusWriter struct {
 	http.ResponseWriter
-	status int
+	status      int
+	wroteHeader bool
 }
 
 func (w *statusWriter) WriteHeader(status int) {
+	if w.wroteHeader {
+		return
+	}
 	w.status = status
+	w.wroteHeader = true
 	w.ResponseWriter.WriteHeader(status)
 }
 

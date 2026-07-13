@@ -123,3 +123,25 @@ func TestRejectUnsafeRoots(t *testing.T) {
 		}
 	}
 }
+
+func TestObjectOverwriteUsesUniqueBody(t *testing.T) {
+	s, err := Open(context.Background(), t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	first, err := s.StreamObjectBody("aws", "s3", "bucket", "key", strings.NewReader("one"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := s.StreamObjectBody("aws", "s3", "bucket", "key", strings.NewReader("two"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.FinalPath == second.FinalPath {
+		t.Fatal("overwrite reused physical body path")
+	}
+	if _, err := os.Stat(first.FinalPath); err != nil {
+		t.Fatalf("previous body changed before metadata commit: %v", err)
+	}
+}
