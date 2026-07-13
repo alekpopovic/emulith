@@ -45,3 +45,8 @@
 | `40-azure-table-batch-transactions.md` | 2026-07-13 | commit containing this entry | Added transactional table persistence primitives; multipart batch endpoint remains partial. |
 | `41-azure-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Existing hermetic suite remains green; Azure SDK scenarios are documented as pending. |
 | `42-azure-manifest-compose-and-dev-ux.md` | 2026-07-13 | commit containing this entry | Extended strict manifests with Azure resource validation and added `azure env` output. |
+| `43-azure-state-migration-export-import-and-matrix.md` | 2026-07-13 | commit containing this entry | Extended schema/snapshot compatibility for Azure tables and documented migration scope. |
+| `44-v0.3-hardening-and-release.md` | 2026-07-13 | commit containing this entry | Ran hardening baseline; AWS suite remains green, Azure/GCP advanced operations remain partial. |
+| `45-gcp-provider-grpc-and-endpoints.md` | 2026-07-13 | commit containing this entry | Added GCP endpoint configuration foundation without claiming operation support. |
+| `46-gcp-project-credentials-and-emulator-env.md` | 2026-07-13 | commit containing this entry | Added local GCP project configuration, resource helpers, and deterministic `gcp env`. |
+| `47-pubsub-topic-and-subscription-lifecycle.md` | 2026-07-13 | commit containing this entry | Pub/Sub lifecycle remains unsupported pending gRPC service definitions. |

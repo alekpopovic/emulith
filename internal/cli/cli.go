@@ -38,7 +38,7 @@ func NewCommandWithClient(out, errOut io.Writer, version, commit, built string, 
 	root := &cobra.Command{Use: "emulith", SilenceUsage: true, SilenceErrors: true}
 	root.SetOut(out)
 	root.SetErr(errOut)
-	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newAzureCommand(out), newResetCommand(out, client), newApplyCommand(out, client), newExportCommand(out, client), newImportCommand(out, client))
+	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newAzureCommand(out), newGCPCommand(out), newResetCommand(out, client), newApplyCommand(out, client), newExportCommand(out, client), newImportCommand(out, client))
 	return root
 }
 
