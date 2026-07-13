@@ -50,3 +50,7 @@
 | `45-gcp-provider-grpc-and-endpoints.md` | 2026-07-13 | commit containing this entry | Added GCP endpoint configuration foundation without claiming operation support. |
 | `46-gcp-project-credentials-and-emulator-env.md` | 2026-07-13 | commit containing this entry | Added local GCP project configuration, resource helpers, and deterministic `gcp env`. |
 | `47-pubsub-topic-and-subscription-lifecycle.md` | 2026-07-13 | commit containing this entry | Pub/Sub lifecycle remains unsupported pending gRPC service definitions. |
+| `48-pubsub-publish-pull-and-ack.md` | 2026-07-13 | commit containing this entry | Pub/Sub messaging remains pending generated gRPC service integration. |
+| `49-pubsub-streaming-pull-redelivery-and-ordering.md` | 2026-07-13 | commit containing this entry | StreamingPull remains unsupported pending gRPC transport. |
+| `50-pubsub-sdk-compatibility-suite.md` | 2026-07-13 | commit containing this entry | Existing compatibility gates remain green; Pub/Sub SDK scenarios are pending. |
+| `51-gcs-bucket-lifecycle.md` | 2026-07-13 | commit containing this entry | Added durable local GCS bucket JSON API subset with lifecycle, labels, pagination groundwork, and metageneration. |
