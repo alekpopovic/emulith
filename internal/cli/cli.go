@@ -22,6 +22,7 @@ import (
 	"github.com/alekpopovic/emulith/internal/state"
 	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 	"github.com/alekpopovic/emulith/providers/aws/dynamodb"
+	"github.com/alekpopovic/emulith/providers/aws/logs"
 	"github.com/alekpopovic/emulith/providers/aws/s3"
 	"github.com/alekpopovic/emulith/providers/aws/sns"
 	"github.com/alekpopovic/emulith/providers/aws/sqs"
@@ -37,7 +38,7 @@ func NewCommandWithClient(out, errOut io.Writer, version, commit, built string, 
 	root := &cobra.Command{Use: "emulith", SilenceUsage: true, SilenceErrors: true}
 	root.SetOut(out)
 	root.SetErr(errOut)
-	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newResetCommand(out, client), newApplyCommand(out, client), newExportCommand(out, client), newImportCommand(out, client))
+	root.AddCommand(newVersionCommand(out, version, commit, built), newServeCommand(errOut, version), newAzureCommand(out), newResetCommand(out, client), newApplyCommand(out, client), newExportCommand(out, client), newImportCommand(out, client))
 	return root
 }
 
@@ -231,6 +232,9 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 			return err
 		}
 		if err := provider.Register("sns", sns.New(store, cfg.Region)); err != nil {
+			return err
+		}
+		if err := provider.Register("logs", logs.New(store)); err != nil {
 			return err
 		}
 		srv := server.NewWithState(cfg.Addr, version, store, logger, provider.Gateway(), registry)
