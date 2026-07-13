@@ -50,3 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_cw_log_events ON cw_log_events(group_name,stream_
 CREATE TABLE IF NOT EXISTS azure_containers(account TEXT NOT NULL, name TEXT NOT NULL, etag TEXT NOT NULL, last_modified TIMESTAMP NOT NULL, metadata TEXT NOT NULL DEFAULT '{}', created_at TIMESTAMP NOT NULL, PRIMARY KEY(account,name));
 CREATE TABLE IF NOT EXISTS azure_blobs(account TEXT NOT NULL, container TEXT NOT NULL, name TEXT NOT NULL, etag TEXT NOT NULL, last_modified TIMESTAMP NOT NULL, body_path TEXT NOT NULL, size INTEGER NOT NULL, content_type TEXT NOT NULL DEFAULT '', content_encoding TEXT NOT NULL DEFAULT '', content_language TEXT NOT NULL DEFAULT '', cache_control TEXT NOT NULL DEFAULT '', content_disposition TEXT NOT NULL DEFAULT '', content_md5 TEXT NOT NULL DEFAULT '', metadata TEXT NOT NULL DEFAULT '{}', created_at TIMESTAMP NOT NULL, PRIMARY KEY(account,container,name), FOREIGN KEY(account,container) REFERENCES azure_containers(account,name) ON DELETE CASCADE);
 INSERT OR IGNORE INTO schema_version(version) VALUES (4);
+
+-- Azure Queue metadata (messages are added in a later migration)
+CREATE TABLE IF NOT EXISTS azure_queues(account TEXT NOT NULL, name TEXT NOT NULL, etag TEXT NOT NULL, last_modified TIMESTAMP NOT NULL, metadata TEXT NOT NULL DEFAULT '{}', created_at TIMESTAMP NOT NULL, PRIMARY KEY(account,name));
+INSERT OR IGNORE INTO schema_version(version) VALUES (5);
