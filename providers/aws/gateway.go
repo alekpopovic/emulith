@@ -42,19 +42,29 @@ type Handler interface {
 }
 
 type Gateway struct {
-	store        *state.Store
-	logger       *slog.Logger
-	sts, s3, sqs Handler
+	store    *state.Store
+	logger   *slog.Logger
+	handlers map[string]Handler
 }
 
 func NewGateway(store *state.Store, logger *slog.Logger) *Gateway {
 	p := placeholder{}
-	return &Gateway{store: store, logger: logger, sts: p, s3: p, sqs: p}
+	return &Gateway{store: store, logger: logger, handlers: map[string]Handler{"sts": p, "s3": p, "sqs": p}}
 }
 
-func (g *Gateway) SetSTS(handler Handler) { g.sts = handler }
-func (g *Gateway) SetS3(handler Handler)  { g.s3 = handler }
-func (g *Gateway) SetSQS(handler Handler) { g.sqs = handler }
+func (g *Gateway) SetSTS(handler Handler) { g.handlers["sts"] = handler }
+func (g *Gateway) SetS3(handler Handler)  { g.handlers["s3"] = handler }
+func (g *Gateway) SetSQS(handler Handler) { g.handlers["sqs"] = handler }
+func (g *Gateway) RegisterHandler(name string, handler Handler) error {
+	if name == "" || handler == nil {
+		return fmt.Errorf("invalid AWS service registration")
+	}
+	if _, ok := g.handlers[name]; ok {
+		return fmt.Errorf("AWS service %q already registered", name)
+	}
+	g.handlers[name] = handler
+	return nil
+}
 
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	started := time.Now()
@@ -74,14 +84,9 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		g.log(r, req, tracked.status, id, started)
 		return
 	}
-	switch req.Service {
-	case "sts":
-		g.sts.ServeAWS(tracked, req, id)
-	case "sqs":
-		g.sqs.ServeAWS(tracked, req, id)
-	case "s3":
-		g.s3.ServeAWS(tracked, req, id)
-	default:
+	if handler, ok := g.handlers[req.Service]; ok {
+		handler.ServeAWS(tracked, req, id)
+	} else {
 		writeQueryError(tracked, id, http.StatusBadRequest, "InvalidAction", "Unsupported AWS operation")
 	}
 	g.log(r, req, tracked.status, id, started)

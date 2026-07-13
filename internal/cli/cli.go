@@ -18,6 +18,7 @@ import (
 	"github.com/alekpopovic/emulith/internal/config"
 	"github.com/alekpopovic/emulith/internal/manifest"
 	"github.com/alekpopovic/emulith/internal/server"
+	"github.com/alekpopovic/emulith/internal/service"
 	"github.com/alekpopovic/emulith/internal/state"
 	awsprovider "github.com/alekpopovic/emulith/providers/aws"
 	"github.com/alekpopovic/emulith/providers/aws/s3"
@@ -213,11 +214,18 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 			return fmt.Errorf("open state: %w", err)
 		}
 		defer store.Close()
-		gateway := awsprovider.NewGateway(store, logger)
-		gateway.SetSTS(sts.New())
-		gateway.SetS3(s3.New(store))
-		gateway.SetSQS(sqs.New(store))
-		srv := server.NewWithState(cfg.Addr, version, store, logger, gateway)
+		registry := service.NewRegistry()
+		provider := awsprovider.NewProvider(store, logger, registry)
+		if err := provider.Register("sts", sts.New()); err != nil {
+			return err
+		}
+		if err := provider.Register("s3", s3.New(store)); err != nil {
+			return err
+		}
+		if err := provider.Register("sqs", sqs.New(store)); err != nil {
+			return err
+		}
+		srv := server.NewWithState(cfg.Addr, version, store, logger, provider.Gateway(), registry)
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
 		go func() {

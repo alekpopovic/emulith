@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alekpopovic/emulith/internal/service"
 	"github.com/alekpopovic/emulith/internal/state"
 )
 
@@ -15,8 +16,11 @@ type Server struct {
 }
 
 func New(addr, version string, rootHandlers ...http.Handler) *Server {
+	return newServer(addr, version, nil, rootHandlers...)
+}
+func newServer(addr, version string, registry *service.Registry, rootHandlers ...http.Handler) *Server {
 	mux := http.NewServeMux()
-	mux.Handle("GET /_emulith/health", HealthHandler(version))
+	mux.Handle("GET /_emulith/health", HealthHandler(version, registry))
 	if len(rootHandlers) > 0 && rootHandlers[0] != nil {
 		mux.Handle("/", rootHandlers[0])
 	}
@@ -30,9 +34,13 @@ func New(addr, version string, rootHandlers ...http.Handler) *Server {
 	}}
 }
 
-func NewWithState(addr, version string, store *state.Store, logger *slog.Logger, root http.Handler) *Server {
-	s := New(addr, version, root)
-	s.httpServer.Handler.(*http.ServeMux).Handle("POST /_emulith/reset", ResetHandler(store, logger))
+func NewWithState(addr, version string, store *state.Store, logger *slog.Logger, root http.Handler, registries ...*service.Registry) *Server {
+	var registry *service.Registry
+	if len(registries) > 0 {
+		registry = registries[0]
+	}
+	s := newServer(addr, version, registry, root)
+	s.httpServer.Handler.(*http.ServeMux).Handle("POST /_emulith/reset", ResetHandler(store, logger, registry))
 	s.httpServer.Handler.(*http.ServeMux).HandleFunc("/_emulith/reset", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Allow", http.MethodPost)
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -61,15 +69,31 @@ func NewWithState(addr, version string, store *state.Store, logger *slog.Logger,
 func (s *Server) ListenAndServe() error    { return s.httpServer.ListenAndServe() }
 func (s *Server) HTTPServer() *http.Server { return s.httpServer }
 
-func HealthHandler(version string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+func HealthHandler(version string, registries ...*service.Registry) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
-		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok", "name": "emulith", "version": version})
+		response := struct {
+			Status   string                          `json:"status"`
+			Name     string                          `json:"name"`
+			Version  string                          `json:"version"`
+			Services map[string]service.HealthStatus `json:"services,omitempty"`
+		}{Status: "ok", Name: "emulith", Version: version}
+		if len(registries) > 0 && registries[0] != nil {
+			response.Services = registries[0].Health(r.Context())
+			for _, h := range response.Services {
+				if h.Status != "ok" {
+					response.Status = "degraded"
+					w.WriteHeader(http.StatusServiceUnavailable)
+					break
+				}
+			}
+		}
+		_ = json.NewEncoder(w).Encode(response)
 	})
 }
 
-func ResetHandler(store *state.Store, logger *slog.Logger) http.Handler {
+func ResetHandler(store *state.Store, logger *slog.Logger, registries ...*service.Registry) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		started := time.Now()
 		requestID := r.Header.Get("x-amzn-RequestId")
@@ -82,6 +106,15 @@ func ResetHandler(store *state.Store, logger *slog.Logger) http.Handler {
 		}()
 		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 		defer cancel()
+		if len(registries) > 0 && registries[0] != nil {
+			if err := registries[0].Reset(ctx); err != nil {
+				result = "error"
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(500)
+				_ = json.NewEncoder(w).Encode(map[string]any{"status": "error", "reset": false})
+				return
+			}
+		}
 		if err := store.Reset(ctx); err != nil {
 			result = "error"
 			w.Header().Set("Content-Type", "application/json")
