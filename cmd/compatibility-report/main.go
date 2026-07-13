@@ -49,7 +49,7 @@ func run(cp, rp, jp, mp string, check bool) error {
 	for _, x := range c.Entries {
 		summary[x.Status]++
 	}
-	rep := compatibility.Report{SchemaVersion: 1, EmulithVersion: env("VERSION", "dev"), Commit: env("COMMIT", "unknown"), GoVersion: runtime.Version(), SDKModules: map[string]string{"github.com/aws/aws-sdk-go-v2": "v1.30.5"}, GeneratedAt: time.Now().UTC().Format(time.RFC3339), Entries: c.Entries, Results: r, Summary: summary}
+	rep := compatibility.Report{SchemaVersion: 1, EmulithVersion: env("VERSION", "dev"), Commit: env("COMMIT", "unknown"), GoVersion: runtime.Version(), SDKModules: map[string]string{"github.com/aws/aws-sdk-go-v2": "v1.30.5", "github.com/aws/aws-sdk-go-v2/service/dynamodb": "v1.34.5"}, GeneratedAt: time.Now().UTC().Format(time.RFC3339), Entries: c.Entries, Results: r, Summary: summary}
 	b, e := compatibility.JSON(rep)
 	if e != nil {
 		return e
