@@ -95,7 +95,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			defer f.Close()
 			w.Header().Set("Content-Type", o.ContentType)
-			io.Copy(w, f)
+			w.Header().Set("Accept-Ranges", "bytes")
+			http.ServeContent(w, r, o.Name, o.UpdatedAt, f)
 			return
 		}
 		json.NewEncoder(w).Encode(o)
