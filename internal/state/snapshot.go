@@ -219,7 +219,7 @@ func (s *Store) Import(ctx context.Context, in io.Reader, replace bool) error {
 	var schema int
 	err = candidate.QueryRowContext(ctx, `SELECT max(version) FROM schema_version`).Scan(&schema)
 	candidate.Close()
-	if err != nil || (schema != 2 && schema != 3 && schema != 4 && schema != 5 && schema != 6) {
+	if err != nil || (schema != 2 && schema != 3 && schema != 4 && schema != 5 && schema != 6 && schema != 7) {
 		return errors.New("import database schema is unsupported")
 	}
 	backup := s.objectsRoot + ".import-backup"

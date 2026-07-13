@@ -25,9 +25,10 @@ type Manifest struct {
 	Resources []Resource `yaml:"resources"`
 }
 type Resource struct {
-	Type   string `yaml:"type"`
-	Name   string `yaml:"name"`
-	Region string `yaml:"region,omitempty"`
+	Type     string            `yaml:"type"`
+	Name     string            `yaml:"name"`
+	Region   string            `yaml:"region,omitempty"`
+	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 
 var projectPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$`)
@@ -76,6 +77,18 @@ func (m Manifest) Validate() error {
 			if strings.HasSuffix(r.Name, ".fifo") {
 				return fmt.Errorf("%s.name: FIFO queues unsupported", prefix)
 			}
+		case "azure.storage.container":
+			if len(r.Name) < 3 || len(r.Name) > 63 || !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(r.Name) {
+				return fmt.Errorf("%s.name: invalid Azure container name", prefix)
+			}
+		case "azure.storage.queue":
+			if !validAzureQueue(r.Name) {
+				return fmt.Errorf("%s.name: invalid Azure queue name", prefix)
+			}
+		case "azure.storage.table":
+			if len(r.Name) < 3 || len(r.Name) > 63 || !regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`).MatchString(r.Name) {
+				return fmt.Errorf("%s.name: invalid Azure table name", prefix)
+			}
 			if !queuePattern.MatchString(r.Name) {
 				return fmt.Errorf("%s.name: invalid queue name", prefix)
 			}
@@ -87,6 +100,17 @@ func (m Manifest) Validate() error {
 		}
 	}
 	return nil
+}
+func validAzureQueue(n string) bool {
+	if len(n) < 3 || len(n) > 63 || n[0] == '-' || n[len(n)-1] == '-' || strings.Contains(n, "--") {
+		return false
+	}
+	for _, c := range n {
+		if !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-') {
+			return false
+		}
+	}
+	return true
 }
 func ValidateEndpoint(raw string) error {
 	u, err := url.Parse(raw)

@@ -3,6 +3,7 @@ package azure
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"github.com/alekpopovic/emulith/internal/state"
@@ -57,6 +58,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.queue(w, r, parts, id)
 		return
 	}
+	if strings.EqualFold(h.Service, "table") || strings.EqualFold(h.Service, "tables") {
+		h.table(w, r, parts, id)
+		return
+	}
 	container, _ := url.PathUnescape(parts[1])
 	blob := ""
 	if len(parts) > 2 {
@@ -67,6 +72,142 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.container(w, r, container, id)
+}
+
+func validTable(n string) bool {
+	if len(n) < 3 || len(n) > 63 {
+		return false
+	}
+	for i, c := range n {
+		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) && c != '_' {
+			return false
+		}
+		if i == 0 && c >= '0' && c <= '9' {
+			return false
+		}
+	}
+	return true
+}
+func tableJSON(w http.ResponseWriter, x state.AzureEntity) {
+	m := map[string]any{"PartitionKey": x.PartitionKey, "RowKey": x.RowKey, "Timestamp": x.Timestamp.UTC().Format(time.RFC3339Nano), "odata.etag": x.ETag}
+	for k, v := range x.Properties {
+		var z any
+		if json.Unmarshal(v, &z) == nil {
+			m[k] = z
+		}
+	}
+	w.Header().Set("ETag", x.ETag)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(m)
+}
+func (h *Handler) table(w http.ResponseWriter, r *http.Request, parts []string, id string) {
+	ctx := r.Context()
+	if len(parts) == 3 && strings.Contains(parts[2], "PartitionKey=") {
+		expr := parts[2]
+		var p, rk string
+		if _, e := fmt.Sscanf(expr, "Table(PartitionKey='%s',RowKey='%s')", &p, &rk); e == nil {
+			p = strings.TrimSuffix(p, "'")
+			rk = strings.TrimSuffix(rk, "'")
+			parts = []string{parts[0], parts[1], p, rk}
+		}
+	}
+	if len(parts) == 2 && r.URL.Query().Get("comp") == "list" {
+		ts, e := h.Store.ListAzureTables(ctx, h.Account)
+		if e != nil {
+			writeError(w, 500, "InternalError", "", id)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"value": ts})
+		return
+	}
+	if len(parts) < 2 || !validTable(parts[1]) {
+		writeError(w, 400, "InvalidInput", "Invalid table name", id)
+		return
+	}
+	t := parts[1]
+	if len(parts) == 2 {
+		switch r.Method {
+		case "POST":
+			e := h.Store.CreateAzureTable(ctx, state.AzureTable{Account: h.Account, Name: t, CreatedAt: time.Now().UTC()})
+			if e == state.ErrConflict {
+				writeError(w, 409, "TableAlreadyExists", "", id)
+				return
+			}
+			if e != nil {
+				writeError(w, 500, "InternalError", "", id)
+				return
+			}
+			w.WriteHeader(201)
+		case "DELETE":
+			if e := h.Store.DeleteAzureTable(ctx, h.Account, t); e != nil {
+				writeError(w, 404, "TableNotFound", "", id)
+				return
+			}
+			w.WriteHeader(204)
+		default:
+			if _, e := h.Store.GetAzureTable(ctx, h.Account, t); e != nil {
+				writeError(w, 404, "TableNotFound", "", id)
+				return
+			}
+			w.WriteHeader(200)
+		}
+		return
+	}
+	if _, e := h.Store.GetAzureTable(ctx, h.Account, t); e != nil {
+		writeError(w, 404, "TableNotFound", "", id)
+		return
+	}
+	if len(parts) < 4 {
+		writeError(w, 400, "InvalidInput", "Entity key required", id)
+		return
+	}
+	p, _ := url.PathUnescape(parts[2])
+	rk, _ := url.PathUnescape(strings.Join(parts[3:], "/"))
+	old, e := h.Store.GetAzureEntity(ctx, h.Account, t, p, rk)
+	if r.Method == "GET" {
+		if e != nil {
+			writeError(w, 404, "ResourceNotFound", "", id)
+			return
+		}
+		tableJSON(w, old)
+		return
+	}
+	if r.Method == "DELETE" {
+		if e != nil {
+			writeError(w, 404, "ResourceNotFound", "", id)
+			return
+		}
+		if m := r.Header.Get("If-Match"); m != "" && m != "*" && m != old.ETag {
+			writeError(w, 412, "UpdateConditionNotSatisfied", "", id)
+			return
+		}
+		h.Store.DeleteAzureEntity(ctx, h.Account, t, p, rk)
+		w.WriteHeader(204)
+		return
+	}
+	var props map[string]json.RawMessage
+	if json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&props) != nil {
+		writeError(w, 400, "InvalidInput", "", id)
+		return
+	}
+	now := time.Now().UTC()
+	if e == nil && r.Method == "POST" {
+		writeError(w, 409, "EntityAlreadyExists", "", id)
+		return
+	}
+	if e == nil && strings.EqualFold(r.Header.Get("X-Ms-Property-Operation"), "merge") {
+		for k, v := range props {
+			old.Properties[k] = v
+		}
+		props = old.Properties
+	}
+	x := state.AzureEntity{Account: h.Account, Table: t, PartitionKey: p, RowKey: rk, ETag: "\"" + requestID() + "\"", Timestamp: now, Properties: props}
+	if e := h.Store.SaveAzureEntity(ctx, x); e != nil {
+		writeError(w, 500, "InternalError", "", id)
+		return
+	}
+	tableJSON(w, x)
 }
 func validQueue(n string) bool {
 	if len(n) < 3 || len(n) > 63 || n[0] == '-' || n[len(n)-1] == '-' || strings.Contains(n, "--") {
