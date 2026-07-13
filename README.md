@@ -24,6 +24,7 @@ Configuration can be supplied with `--addr`/`EMULITH_ADDR` and `--data-dir`/`EMU
 | IAM enforcement | Not implemented |
 | S3 subset: CreateBucket, ListBuckets, Put/Get/Head/DeleteObject, ListObjectsV2 | Supported (path-style only) |
 | S3 multipart, ACLs, policies, versioning, ranges, encryption, website hosting | Unsupported |
-| AWS SQS | Not implemented yet |
+| SQS standard queue subset: Create/Get/List, Send/Receive/Delete, Purge, attributes | Supported; AWS JSON primary, Query fallback |
+| SQS FIFO, redrive, attributes, batch, delay, long polling, permissions/tags | Unsupported |
 
 Emulith does not claim full AWS parity.

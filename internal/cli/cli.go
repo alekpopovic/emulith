@@ -16,6 +16,7 @@ import (
 	"github.com/emulith/emulith/internal/state"
 	awsprovider "github.com/emulith/emulith/providers/aws"
 	"github.com/emulith/emulith/providers/aws/s3"
+	"github.com/emulith/emulith/providers/aws/sqs"
 	"github.com/emulith/emulith/providers/aws/sts"
 	"github.com/spf13/cobra"
 )
@@ -51,6 +52,7 @@ func newServeCommand(errOut io.Writer, version string) *cobra.Command {
 		gateway := awsprovider.NewGateway(store, logger)
 		gateway.SetSTS(sts.New())
 		gateway.SetS3(s3.New(store))
+		gateway.SetSQS(sqs.New(store))
 		srv := server.New(cfg.Addr, version, gateway)
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()
